@@ -10,7 +10,7 @@
         "test": "jest"
     },
     "dependencies": {
-        "axios": "^0.18.0",
+        "axios": "^0.19.1",
         "camelize": "^1.0.0",
         "dotenv": "^6.2.0",
         "firebase-admin": "^7.0.0",
