@@ -1,14 +1,14 @@
 {
     "name": "devwars-bot",
     "version": "0.0.0",
-    "description": "",
+    "description": "Official Twitch Bot for DevWars",
+    "author": "DevWars, LLC",
     "main": "index.js",
+    "license": "MIT",
     "scripts": {
         "start": "node ./src",
         "test": "jest"
     },
-    "author": "DevWars, LLC",
-    "license": "ISC",
     "dependencies": {
         "axios": "^0.18.0",
         "camelize": "^1.0.0",
