@@ -17,7 +17,6 @@ class Bot {
         this.symbols = ['!', '$', '#', '@'];
 
         this.game = {
-            canApply: false,
             active: false,
             stage: 'objective',
             stages: ['objective', 'betting', 'voting', 'poll'],
