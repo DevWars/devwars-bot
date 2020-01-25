@@ -33,7 +33,6 @@ bot.addCommand('@startgame', async () => {
     }
 
     bot.game.active = true;
-    bot.game.canApply = false;
     return bot.say('Game started!');
 });
 
@@ -46,32 +45,21 @@ bot.addCommand('@endgame', async () => {
     await devwarsApi.endGame(game.id);
 
     bot.game.active = false;
-    bot.game.canApply = true;
     return bot.say('Game has ended!');
 });
 
-bot.addCommand('!openapply', async () => {
-    if (bot.game.canApply === true) {
-        return bot.say('Sign ups are already opened for this game');
-    }
-
-    const game = await devwarsApi.getActiveGame();
-    if (!game) {
-        return bot.say('There is currently no active game');
-    }
-
-    bot.game.canApply = true;
-    return bot.say(`Sign ups are now open for the ${game.name} game! Type !apply to sign up`);
-});
-
 bot.addCommand('!apply', async (ctx) => {
-    if (bot.game.canApply === false) {
-        return bot.say('Sign ups for this game is currently closed.');
-    }
-
     const game = await devwarsApi.getActiveGame();
     if (!game) {
         return bot.say('There is currently no active game');
+    }
+
+    const appliedUser = await devwarsApi.signUpForActiveGame(game.schedule, ctx.user);
+    if (appliedUser.response.status === 400) {
+        return bot.say(`${ctx.user.username} connect your twitch account on devwars.tv to use !apply`);
+    }
+    if (appliedUser.response.status === 409) {
+        return bot.whisper('You already applied for this game');
     }
 
     return bot.say(`${ctx.user.username} signed up for the ${game.mode} game! PogChamp devwarsLogo`);

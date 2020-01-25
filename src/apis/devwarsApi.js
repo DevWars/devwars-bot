@@ -51,9 +51,21 @@ async function endGame(gameId) {
     }
 }
 
+async function signUpForActiveGame(scheduleId, twitchUser) {
+    try {
+        return await axios.post(`${apiUrl}/applications/schedule/${scheduleId}/twitch?twitch_id=${twitchUser.id}`, {
+            apiKey,
+        });
+    } catch (e) {
+        console.log(e);
+        return e;
+    }
+}
+
 module.exports = {
     getCoins,
     putCoins,
     getActiveGame,
     endGame,
+    signUpForActiveGame,
 };
