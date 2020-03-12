@@ -25,11 +25,11 @@ bot.addCommand('!watch', () => {
 
 bot.addCommand('!discord', () => {
     bot.say('Join our growing Discord community for developers by heading over to discord.gg/devwars');
-}, ms('10m'));
+}, ms('13m'));
 
 bot.addCommand('!follow', () => {
     bot.say('Enjoying DevWars? Hit the follow button so you don\'t miss another stream!');
-}, ms('15m'));
+}, ms('21m'));
 
 bot.addCommand('!coins', async (ctx) => {
     let userCoins = await devwarsApi.getCoins(ctx.user);
