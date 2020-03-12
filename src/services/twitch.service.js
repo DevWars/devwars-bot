@@ -3,10 +3,7 @@ const devwarsApi = require('../apis/devwarsApi');
 
 async function giveCoinsToAllViewers(amount) {
     const usernames = await twitchApi.getViewers();
-
-    const twitchUsers = await Promise.all(
-        usernames.map(username => twitchApi.getUserByUsername(username)),
-    );
+    const twitchUsers = await twitchApi.getUsersByUsernames(usernames);
 
     const updates = twitchUsers.map(user => ({ user, amount }));
     return devwarsApi.putCoins(updates);
