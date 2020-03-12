@@ -7,40 +7,35 @@ const twitchUrl = 'https://api.twitch.tv/helix';
 async function getViewers() {
     try {
         const req = await axios.get(`http://tmi.twitch.tv/group/user/${config.channel}/chatters`);
-        const chatters = req.data.chatters;
-
-        return _.uniq([
-            ...chatters.broadcaster,
-            ...chatters.vips,
-            ...chatters.moderators,
-            ...chatters.staff,
-            ...chatters.admins,
-            ...chatters.global_mods,
-            ...chatters.viewers,
-        ]);
+        const chatters = _.flatMapDeep(req.data.chatters);
+        return _.uniq(chatters);
     } catch (error) {
         console.log('twitch.getViewers', error);
     }
 }
 
-async function getUserByUsername(username) {
-    const req = await axios.get(`${twitchUrl}/users?login=${username}`, {
-        headers: { 'Client-ID': process.env.TWITCH_CLIENT },
+async function getUsersByUsernames(usernames) {
+    const requests = _.chunk(usernames, 100).map((users) => {
+        return axios.get(`${twitchUrl}/users?login=${users.join('&login=')}`, {
+            headers: { 'Client-ID': process.env.TWITCH_CLIENT },
+        }).catch((error) => {
+            console.log('twitch.getUsersByUsernames', error);
+        });
     });
-    const data = req.data.data;
 
-    if (data.length === 0) {
-        return undefined;
-    }
+    const results = await Promise.all(requests);
 
-    const twitchUser = data[0];
-    return {
-        id: twitchUser.id,
-        username,
-    };
+    const twitchUsers = _.flatMap(results, result => result.data.data);
+    return twitchUsers.map(user => ({ id: user.id, username: user.login }));
+}
+
+async function getUserByUsername(username) {
+    const [user] = await getUsersByUsernames([username]);
+    return user;
 }
 
 module.exports = {
     getViewers,
     getUserByUsername,
+    getUsersByUsernames,
 };

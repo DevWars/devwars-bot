@@ -59,6 +59,10 @@ bot.addCommand('@givecoins <username> <amount>', async (ctx, args) => {
     }
 
     const twitchUser = await twitchApi.getUserByUsername(username);
+    if (!twitchUser) {
+        return bot.say(`No user with username ${username} found`);
+    }
+
     await setCoins(twitchUser, amount);
 });
 
@@ -70,6 +74,10 @@ bot.addCommand('@takecoins <username> <amount>', async (ctx, args) => {
     }
 
     const twitchUser = await twitchApi.getUserByUsername(username);
+    if (!twitchUser) {
+        return bot.say(`No user with username ${username} found`);
+    }
+
     await setCoins(twitchUser, -amount);
 });
 
