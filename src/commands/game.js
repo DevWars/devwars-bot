@@ -1,79 +1,100 @@
-const ms = require('ms');
-const bot = require('../common/bot');
-const devwarsApi = require('../apis/devwarsApi');
-const firebaseService = require('../services/firebase.service');
+const ms = require("ms");
+const _ = require("lodash");
+const assert = require("assert");
 
-bot.addCommand('@startgame', async () => {
+const bot = require("../common/bot");
+const devwarsApi = require("../apis/devwarsApi");
+const firebaseService = require("../services/firebase.service");
+
+bot.addCommand("@startgame", async () => {
     if (bot.game.active === true) {
-        return bot.say('Game is already active');
+        return bot.say("Game is already active");
     }
 
     const game = await devwarsApi.getActiveGame();
     if (!game) {
-        return bot.say('There is currently no active game');
+        return bot.say("There is currently no active game");
     }
 
-    const theme = game.mode || 'Classic';
+    const theme = game.mode || "Classic";
 
-    bot.game.stage = 'objective';
-    await firebaseService.setStage('objective');
+    bot.game.stage = "objective";
+    await firebaseService.setStage("objective");
 
     switch (theme.toLowerCase()) {
-    case 'blitz':
-        bot.say('Betting will open in 2 minutes!');
-        bot.betting.openTimer = setTimeout(() => bot.selfCommand('!openbets 3'), ms('3m'));
-        break;
-    case 'zen garden':
-        bot.say('Betting will open in 5 minutes!');
-        bot.betting.openTimer = setTimeout(() => bot.selfCommand('!openbets 5'), ms('5m'));
-        break;
-    default:
-        bot.say('Betting will open in 5 minutes!');
-        bot.betting.openTimer = setTimeout(() => bot.selfCommand('!openbets 5'), ms('5m'));
+        case "blitz":
+            bot.say("Betting will open in 2 minutes!");
+            bot.betting.openTimer = setTimeout(
+                () => bot.selfCommand("!openbets 3"),
+                ms("3m")
+            );
+            break;
+        case "zen garden":
+            bot.say("Betting will open in 5 minutes!");
+            bot.betting.openTimer = setTimeout(
+                () => bot.selfCommand("!openbets 5"),
+                ms("5m")
+            );
+            break;
+        default:
+            bot.say("Betting will open in 5 minutes!");
+            bot.betting.openTimer = setTimeout(
+                () => bot.selfCommand("!openbets 5"),
+                ms("5m")
+            );
     }
 
     bot.game.active = true;
-    return bot.say('Game started!');
+    return bot.say("Game started!");
 });
 
-bot.addCommand('@endgame', async () => {
+bot.addCommand("@endgame", async () => {
     if (bot.game.active === false) {
-        return bot.say('There is currently no active game');
+        return bot.say("There is currently no active game");
     }
 
     const game = await devwarsApi.getActiveGame();
     await devwarsApi.endGame(game.id);
 
     bot.game.active = false;
-    return bot.say('Game has ended!');
+    return bot.say("Game has ended!");
 });
 
-bot.addCommand('!apply', async (ctx) => {
-    const game = await devwarsApi.getActiveGame();
-    if (!game) {
-        return bot.say('There is currently no active game');
+bot.addCommand("!apply", async (ctx) => {
+    assert.ok(!_.isNil(ctx.user) && !_.isNil(ctx.user.id));
+
+    const { data: game } = await devwarsApi.getActiveGame();
+    if (_.isNil(game)) return bot.say("There is currently no active game");
+
+    const { id, username } = ctx.user;
+    const { status, error } = await devwarsApi.signUpForActiveGame(
+        game.schedule,
+        id
+    );
+
+    if (status === 400) {
+        const message = `${username}, you need to connect your Twitch account on DevWars.tv to use !apply.`;
+        return bot.say(message);
     }
 
-    const appliedUser = await devwarsApi.signUpForActiveGame(game.schedule, ctx.user);
-    if (appliedUser.response.status === 400) {
-        return bot.say(`${ctx.user.username} connect your twitch account on devwars.tv to use !apply`);
-    }
-    if (appliedUser.response.status === 409) {
-        return bot.whisper('You already applied for this game');
+    if (status === 409) {
+        return bot.say(`${username}, you have already applied for this game.`);
     }
 
-    return bot.say(`${ctx.user.username} signed up for the ${game.mode} game! PogChamp devwarsLogo`);
+    if (status !== 200 && error != null) return bot.whisper(ctx.user, error);
+
+    const message = `${username} signed up for the ${game.mode} game! PogChamp devwarsLogo`;
+    return bot.say(message);
 });
-
 
 /**
  * Developer commands
  */
-bot.addCommand('@showgame', async () => {
+bot.addCommand("@showgame", async () => {
     console.log(bot.game);
 });
 
-bot.addCommand('@activegame', async () => {
+bot.addCommand("@activegame", async () => {
     const game = await devwarsApi.getActiveGame();
     console.log(game);
 });
