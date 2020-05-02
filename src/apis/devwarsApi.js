@@ -1,5 +1,5 @@
-require("dotenv").config();
-const axios = require("axios");
+require('dotenv').config();
+const axios = require('axios');
 
 const apiUrl = process.env.DEVWARS_API_URL;
 const apiKey = process.env.DEVWARS_API_KEY;
@@ -42,8 +42,9 @@ async function putCoins(updates) {
 
 async function getActiveGame() {
     try {
-        const { data, status } = await axios.get(`${apiUrl}/games/active`);
-        return { data, status };
+        const { data, status } = await axios.get(`${apiUrl}/games?status=active`);
+
+        return { data: data.data[0], status };
     } catch (e) {
         console.log(e);
         return {
