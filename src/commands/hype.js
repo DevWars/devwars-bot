@@ -6,21 +6,19 @@ const { validNumber, coins } = require('../utils');
 const hypeEmote = '🚃 ';
 
 function hasHyped(user) {
-    return bot.hype.hypes.find(hype => hype.user.username === user.username);
+    return bot.hype.hypes.find((hype) => hype.user.username === user.username);
 }
 
 function getHypeAmount() {
-    const amounts = bot.hype.hypes.map(hype => hype.amount);
-    return amounts.reduce(((accumulator, amount) => accumulator + amount), 0);
+    const amounts = bot.hype.hypes.map((hype) => hype.amount);
+    return amounts.reduce((accumulator, amount) => accumulator + amount, 0);
 }
 
 function addHype(user) {
     const amount = user.subscriber ? 3 : 1;
     const role = user.subscriber ? '[🔥 Subscriber] ' : '';
 
-    const message = getHypeAmount() === 0
-        ? 'boarded the Hype Train first with'
-        : 'boarded the Hype Train with';
+    const message = getHypeAmount() === 0 ? 'boarded the Hype Train first with' : 'boarded the Hype Train with';
 
     bot.hype.hypes.push({ user, amount });
     return bot.say(`${role}${user.username} ${message} ${hypeEmote.repeat(amount)}`);
@@ -35,7 +33,7 @@ async function awardCoins() {
         updates.push({ user: hype.user, amount: winnings });
     }
 
-    await devwarsApi.putCoins(updates);
+    await devwarsApi.updateCoinsForUsers(updates);
     return bot.say(`Everyone who boarded the Hype Train received ${coins(winnings)}! PogChamp PogChamp PogChamp`);
 }
 
@@ -77,7 +75,6 @@ function openHype(minutes) {
     return bot.say(`Choo Choo! 🚅 The Hype Train arrived for ${formatDuration}! Type !hype to extend the Hype Train`);
 }
 
-
 bot.addCommand('!hype', (ctx) => {
     if (bot.hype.open === false) {
         return bot.say('The Hype Train is currently not here FeelsBadMan');
@@ -106,7 +103,6 @@ bot.addCommand('#openhype <minutes>', (ctx, args) => {
 bot.addCommand('#closehype', async () => {
     await closeHype();
 });
-
 
 /**
  * Developer commands

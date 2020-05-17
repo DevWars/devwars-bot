@@ -19,7 +19,7 @@ async function getCoins(twitchUser) {
     }
 }
 
-async function putCoins(updates) {
+async function updateCoinsForUsers(updates) {
     // Simplify twitchUser object for API validation
     updates.forEach(({ user }, index) => {
         updates[index].twitchUser = { id: user.id, username: user.username };
@@ -43,8 +43,7 @@ async function putCoins(updates) {
 async function getActiveGame() {
     try {
         const { data, status } = await axios.get(`${apiUrl}/games?status=active`);
-
-        return { data: data.data[0], status };
+        return { data: data[0], status };
     } catch (e) {
         console.log(e);
         return {
@@ -83,7 +82,7 @@ async function signUpForActiveGame(scheduleId, twitchUserId) {
 
 module.exports = {
     getCoins,
-    putCoins,
+    updateCoinsForUsers,
     getActiveGame,
     endGame,
     signUpForActiveGame,
