@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const ms = require('ms');
 const bot = require('../common/bot');
-const { validNumber, coins } = require('../utils');
+const { validNumber, formatCoins } = require('../utils');
 const devwarsApi = require('../apis/devwarsApi');
 const firebaseService = require('../services/firebase.service');
 
@@ -32,22 +32,37 @@ async function awardWinners(winningTeam) {
     const winMultiplier = 1 / 2;
 
     const betters = [];
+
     for (const bet of Object.values(bot.betting.bets)) {
+        const { id: userId, username } = bet.user;
+
         if (bet.team === winningTeam) {
             const winnings = bet.amount + Math.round(bet.amount * winMultiplier);
-            betters.push({ user: bet.user, amount: winnings });
-            bot.say(`${bet.user.username} won ${coins(winnings)} from their bet!`);
-        } else if (winningTeam === 'tie' && bet.team !== 'tie') {
-            const halfAmt = Math.round(bet.amount / 2);
-            betters.push({ user: bet.user, amount: -halfAmt });
-            bot.say(`${bet.user.username} lost only ${coins(halfAmt)} (50% of their bet) since it was a tie`);
-        } else {
-            betters.push({ user: bet.user, amount: -bet.amount });
-            bot.say(`${bet.user.username} lost ${coins(bet.amount)} from their bet BibleThump`);
+
+            const request = devwarsApi.linkedAccounts.updateCoinsByProviderAndId('twitch', userId, username, winnings);
+            betters.push(request);
+
+            bot.say(`${bet.user.username} won ${formatCoins(winnings)} from their bet!`);
+            continue;
         }
+
+        if (winningTeam === 'tie' && bet.team !== 'tie') {
+            const halfAmt = Math.round(bet.amount / 2);
+
+            const request = devwarsApi.linkedAccounts.updateCoinsByProviderAndId('twitch', userId, username, halfAmt);
+            betters.push(request);
+
+            bot.say(`${bet.user.username} lost only ${formatCoins(halfAmt)} (50% of their bet) since it was a tie`);
+            continue;
+        }
+
+        const request = devwarsApi.linkedAccounts.updateCoinsByProviderAndId('twitch', userId, username, -bet.amount);
+        betters.push(request);
+
+        bot.say(`${bet.user.username} lost ${formatCoins(bet.amount)} from their bet BibleThump`);
     }
 
-    await devwarsApi.updateCoinsForUsers(betters);
+    await Promise.all(betters);
 }
 
 async function resetBets() {
@@ -106,7 +121,7 @@ async function openBets(minutes) {
 bot.addCommand('!bet <amount> <team>', async (ctx, args) => {
     const [amount, team] = args;
 
-    const userCoins = await devwarsApi.getCoins(ctx.user);
+    const { coins } = await devwarsApi.linkedAccounts.getCoinsByProviderAndId('twitch', ctx.user.id);
     const prevBet = await hasBet(ctx.user);
 
     if (!bot.betting.open) {
@@ -125,8 +140,8 @@ bot.addCommand('!bet <amount> <team>', async (ctx, args) => {
         return bot.whisper(ctx.user, '<amount> you must bet at least more than devwarsCoin 0');
     }
 
-    if (userCoins < amount) {
-        return bot.say(`${ctx.user.username} tried to bet ${coins(amount)} but only has ${coins(userCoins)}`);
+    if (coins < amount) {
+        return bot.say(`${ctx.user.username} tried to bet ${formatCoins(amount)} but only has ${formatCoins(coins)}`);
     }
 
     if (prevBet) {
@@ -136,8 +151,8 @@ bot.addCommand('!bet <amount> <team>', async (ctx, args) => {
     await addBet(ctx.user, amount, team);
 
     const message = prevBet
-        ? `${ctx.user.username} changed their bet to ${coins(amount)} on [${team}]`
-        : `${ctx.user.username} bet ${coins(amount)} on [${team}]`;
+        ? `${ctx.user.username} changed their bet to ${formatCoins(amount)} on [${team}]`
+        : `${ctx.user.username} bet ${formatCoins(amount)} on [${team}]`;
 
     bot.say(message);
 });
@@ -154,7 +169,7 @@ bot.addCommand('!clearbet', async (ctx) => {
 
     await removeBet(ctx.user);
     await firebaseService.removeBetOnFrame(ctx.user.username);
-    return bot.say(`${ctx.user.username} retracted their bet of ${coins(prevBet.amount)}`);
+    return bot.say(`${ctx.user.username} retracted their bet of ${formatCoins(prevBet.amount)}`);
 });
 
 bot.addCommand('@resetbets', async () => {

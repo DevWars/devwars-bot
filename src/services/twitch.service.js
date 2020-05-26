@@ -55,8 +55,11 @@ class TwitchService {
         const usernames = await this.getViewers();
         const twitchUsers = await this.getUsersByUsernames(usernames);
 
-        const updates = twitchUsers.map((user) => ({ user, amount }));
-        return devwarsApi.updateCoinsForUsers(updates);
+        const updates = _.map(twitchUsers, (user) =>
+            devwarsApi.linkedAccounts.updateCoinsByProviderAndId('twitch', user.id, user.username, amount)
+        );
+
+        return await Promise.all(updates);
     }
 
     /**

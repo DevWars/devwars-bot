@@ -4,18 +4,17 @@ const bot = require('../common/bot');
 const devwarsApi = require('../apis/devwarsApi');
 
 const twitchService = require('../services/twitch.service');
-const devWarsService = require('../services/devwars.service');
 
 const firebaseService = require('../services/firebase.service');
-const { validNumber, coins } = require('../utils');
+const { validNumber, formatCoins } = require('../utils');
 
 function helpCommand() {
     bot.say('To see all commands visit https://www.devwars.tv/docs#watching');
 }
 
-async function setCoins(user, amount) {
-    await devWarsService.updateCoinsForUser(user, amount);
-    bot.say(`@${user.username} ${amount >= 0 ? 'received' : 'lost'} ${coins(amount)}`);
+async function updateUserCoins(user, amount) {
+    await devwarsApi.linkedAccounts.updateCoinsByProviderAndId('twitch', user.id, user.username, amount);
+    bot.say(`@${user.username} ${amount >= 0 ? 'received' : 'lost'} ${formatCoins(amount)}`);
 }
 
 bot.addCommand('!help', helpCommand);
@@ -25,7 +24,8 @@ bot.addCommand(
     '!watch',
     () => {
         bot.say(
-            'Check out the code and websites! https://watch.devwars.tv - View Code | https://red.devwars.tv - Red Website | https://blue.devwars.tv - Blue Website'
+            'Check out the code and websites! https://watch.devwars.tv - View Code ' +
+                '| https://red.devwars.tv - Red Website | https://blue.devwars.tv - Blue Website'
         );
     },
     ms('5m')
@@ -48,12 +48,8 @@ bot.addCommand(
 );
 
 bot.addCommand('!coins', async (ctx) => {
-    let userCoins = await devwarsApi.getCoins(ctx.user);
-    if (!userCoins) {
-        userCoins = 0;
-    }
-
-    bot.say(`@${ctx.user.username} ${coins(userCoins)}`);
+    let { coins } = await devwarsApi.linkedAccounts.getCoinsByProviderAndId('twitch', ctx.user.id);
+    bot.say(`@${ctx.user.username} ${formatCoins(coins)}`);
 });
 
 bot.addCommand('@coinsall <amount>', async (ctx, args) => {
@@ -64,7 +60,7 @@ bot.addCommand('@coinsall <amount>', async (ctx, args) => {
     }
 
     await twitchService.giveCoinsToAllViewers(amount);
-    bot.say(`Everyone received ${coins(amount)}!`);
+    bot.say(`Everyone received ${formatCoins(amount)}!`);
 });
 
 bot.addCommand('@givecoins <username> <amount>', async (ctx, args) => {
@@ -75,11 +71,9 @@ bot.addCommand('@givecoins <username> <amount>', async (ctx, args) => {
     }
 
     const twitchUser = await twitchService.getUserByUsername(username);
-    if (!twitchUser) {
-        return bot.say(`No user with username ${username} found`);
-    }
+    if (!twitchUser) return bot.say(`No user with username ${username} found`);
 
-    await setCoins(twitchUser, amount);
+    await updateUserCoins(twitchUser, amount);
 });
 
 bot.addCommand('@takecoins <username> <amount>', async (ctx, args) => {
@@ -94,7 +88,7 @@ bot.addCommand('@takecoins <username> <amount>', async (ctx, args) => {
         return bot.say(`No user with username ${username} found`);
     }
 
-    await setCoins(twitchUser, -amount);
+    await updateUserCoins(twitchUser, -Math.abs(amount));
 });
 
 bot.addCommand('@stage <stage>', async (ctx, args) => {
