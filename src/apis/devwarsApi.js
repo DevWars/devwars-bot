@@ -1,5 +1,5 @@
-require("dotenv").config();
-const axios = require("axios");
+require('dotenv').config();
+const axios = require('axios');
 
 const apiUrl = process.env.DEVWARS_API_URL;
 const apiKey = process.env.DEVWARS_API_KEY;
@@ -19,7 +19,7 @@ async function getCoins(twitchUser) {
     }
 }
 
-async function putCoins(updates) {
+async function updateCoinsForUsers(updates) {
     // Simplify twitchUser object for API validation
     updates.forEach(({ user }, index) => {
         updates[index].twitchUser = { id: user.id, username: user.username };
@@ -42,8 +42,8 @@ async function putCoins(updates) {
 
 async function getActiveGame() {
     try {
-        const { data, status } = await axios.get(`${apiUrl}/games/active`);
-        return { data, status };
+        const { data, status } = await axios.get(`${apiUrl}/games?status=active`);
+        return { data: data[0], status };
     } catch (e) {
         console.log(e);
         return {
@@ -82,7 +82,7 @@ async function signUpForActiveGame(scheduleId, twitchUserId) {
 
 module.exports = {
     getCoins,
-    putCoins,
+    updateCoinsForUsers,
     getActiveGame,
     endGame,
     signUpForActiveGame,

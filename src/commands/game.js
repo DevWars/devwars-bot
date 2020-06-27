@@ -9,7 +9,8 @@ bot.addCommand('@startgame', async () => {
         return bot.say('Game is already active');
     }
 
-    const game = await devwarsApi.getActiveGame();
+    const { data: game } = await devwarsApi.getActiveGame();
+
     if (!game) {
         return bot.say('There is currently no active game');
     }
@@ -42,7 +43,7 @@ bot.addCommand('@endgame', async () => {
         return bot.say('There is currently no active game');
     }
 
-    const game = await devwarsApi.getActiveGame();
+    const { data: game } = await devwarsApi.getActiveGame();
     await devwarsApi.endGame(game.id);
 
     bot.game.active = false;
@@ -81,6 +82,6 @@ bot.addCommand('@showgame', async () => {
 });
 
 bot.addCommand('@activegame', async () => {
-    const game = await devwarsApi.getActiveGame();
+    const { data: game } = await devwarsApi.getActiveGame();
     console.log(game);
 });

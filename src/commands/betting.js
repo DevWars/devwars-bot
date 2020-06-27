@@ -29,7 +29,7 @@ function validTeam(team) {
 }
 
 async function awardWinners(winningTeam) {
-    const winMultiplier = (1 / 2);
+    const winMultiplier = 1 / 2;
 
     const betters = [];
     for (const bet of Object.values(bot.betting.bets)) {
@@ -47,7 +47,7 @@ async function awardWinners(winningTeam) {
         }
     }
 
-    await devwarsApi.putCoins(betters);
+    await devwarsApi.updateCoinsForUsers(betters);
 }
 
 async function resetBets() {
@@ -102,7 +102,6 @@ async function openBets(minutes) {
 
     bot.say(`Betting is now open for ${minutes} ${minutes > 1 ? 'minutes' : 'minute'}!`);
 }
-
 
 bot.addCommand('!bet <amount> <team>', async (ctx, args) => {
     const [amount, team] = args;
@@ -188,7 +187,6 @@ bot.addCommand('@openbets <minutes>', async (ctx, args) => {
 bot.addCommand('@closebets', async () => {
     await closeBets();
 });
-
 
 /**
  * Developer commands
