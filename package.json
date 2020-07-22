@@ -1,6 +1,6 @@
 {
     "name": "devwars-bot",
-    "version": "0.0.0",
+    "version": "0.0.1",
     "description": "Official Twitch Bot for DevWars",
     "author": "DevWars, LLC",
     "main": "index.js",
@@ -8,7 +8,8 @@
     "scripts": {
         "start": "node ./src",
         "dev": "nodemon ./src",
-        "test": "jest"
+        "test": "jest",
+        "release": "standard-version"
     },
     "dependencies": {
         "axios": "^0.19.2",
@@ -26,6 +27,7 @@
         "eslint": "^6.8.0",
         "eslint-config-airbnb-base": "^14.1.0",
         "eslint-plugin-import": "^2.22.0",
-        "jest": "^26.1.0"
+        "jest": "^26.1.0",
+        "standard-version": "^8.0.2"
     }
 }
