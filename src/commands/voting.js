@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const ms = require('ms');
 const bot = require('../common/bot');
-const { validNumber } = require('../utils');
+const {validNumber} = require('../utils');
 const firebaseService = require('../services/firebase.service');
 
 function validCategory(category) {
@@ -38,7 +38,7 @@ async function closeVoting() {
 }
 
 function setVotingTimer(category, duration) {
-    const formatTime = ms(ms(`${duration}m`), { long: true });
+    const formatTime = ms(ms(`${duration}m`), {long: true});
     bot.voting.timer = setTimeout(async () => {
         await closeVoting();
     }, ms(`${duration}m`));
@@ -63,7 +63,7 @@ async function openVoting(category, duration) {
 }
 
 async function addVote(user, team) {
-    bot.voting.votes.push({ username: user.username, team });
+    bot.voting.votes.push({username: user.username, team});
     await firebaseService.addVoteOnFrame(team, bot.voting.category);
 }
 
@@ -113,11 +113,17 @@ bot.addCommand('@phase <category> <minutes>', async (ctx, args) => {
 });
 
 bot.addCommand('!blue', async (ctx) => {
-    await voteOnTeam(ctx.user, 'blue');
+    await voteOnTeam(ctx.user, 'blue').catch((error) => {
+        bot.say(`Sorry @${ctx.user.username}, something went wrong voting for blue.`);
+        console.log(error)
+    });
 });
 
 bot.addCommand('!red', async (ctx) => {
-    await voteOnTeam(ctx.user, 'red');
+    await voteOnTeam(ctx.user, 'red').catch((error) => {
+        bot.say(`Sorry @${ctx.user.username}, something went wrong voting for red.`);
+        console.log(error)
+    });
 });
 
 bot.addCommand('@endphase <category>', async (ctx, args) => {

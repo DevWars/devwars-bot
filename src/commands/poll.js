@@ -81,22 +81,26 @@ bot.addCommand('#poll <minutes> <"question"> <...options>', async (ctx, args) =>
 });
 
 bot.addCommand('!vote <letter>', async (ctx, args) => {
-    const [letter] = args;
+  try {
+      const [letter] = args;
 
-    if (bot.poll.open === false) {
-        return bot.say('Poll is currently closed');
-    }
+      if (bot.poll.open === false) {
+          return bot.say('Poll is currently closed');
+      }
 
-    if (hasVote(ctx.user)) {
-        return bot.say(`${ctx.user.username}, you already voted for ${hasVote(ctx.user).letter}`);
-    }
+      if (hasVote(ctx.user)) {
+          return bot.say(`${ctx.user.username}, you already voted for ${hasVote(ctx.user).letter}`);
+      }
 
-    const letters = lettersFromOptions();
-    if (!validLetter(letters, letter)) {
-        return bot.say(`<letter> must be one from [${letters}]`);
-    }
+      const letters = lettersFromOptions();
+      if (!validLetter(letters, letter)) {
+          return bot.say(`<letter> must be one from [${letters}]`);
+      }
 
-    await addPollVote(ctx.user, letter);
+      await addPollVote(ctx.user, letter);
+  } catch(error) {
+      bot.say(`Sorry @${ctx.user.username}, something went wrong adding your vote.`)
+  }
 });
 
 bot.addCommand('#closepoll', async () => {
