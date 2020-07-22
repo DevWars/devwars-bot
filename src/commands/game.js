@@ -9,7 +9,7 @@ bot.addCommand('@startgame', async () => {
         return bot.say('Game is already active');
     }
 
-    const { data: game } = await devwarsApi.getActiveGame();
+    const {data: game} = await devwarsApi.getActiveGame();
 
     if (!game) {
         return bot.say('There is currently no active game');
@@ -43,7 +43,7 @@ bot.addCommand('@endgame', async () => {
         return bot.say('There is currently no active game');
     }
 
-    const { data: game } = await devwarsApi.getActiveGame();
+    const {data: game} = await devwarsApi.getActiveGame();
     await devwarsApi.endGame(game.id);
 
     bot.game.active = false;
@@ -51,11 +51,12 @@ bot.addCommand('@endgame', async () => {
 });
 
 bot.addCommand('!apply', async (ctx) => {
-    const { data: game } = await devwarsApi.getActiveGame();
-    if (!game) return bot.say('There is currently no active game');
+    const {data: [game]} = await devwarsApi.games.gamesWithPaging({first: 1, status: 'active', season: 3})
 
-    const { id, username } = ctx.user;
-    const { status, error } = await devwarsApi.signUpForActiveGame(game.schedule, id);
+    if (game == null) return bot.say('There is currently no active game');
+
+    const {id, username} = ctx.user;
+    const {status, error} = await devwarsApi.signUpForActiveGame(game.schedule, id);
 
     if (status === 400) {
         const message = `${username}, you need to connect your Twitch account on DevWars.tv to use !apply.`;
@@ -82,6 +83,6 @@ bot.addCommand('@showgame', async () => {
 });
 
 bot.addCommand('@activegame', async () => {
-    const { data: game } = await devwarsApi.getActiveGame();
+    const {data: game} = await devwarsApi.getActiveGame();
     console.log(game);
 });
