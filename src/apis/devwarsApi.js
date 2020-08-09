@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const axios = require('axios');
-const devwarsApi = require('../../client');
+const devwarsApi = require('DevwarsClient');
 
 const apiUrl = process.env.DEVWARS_API_URL;
 const apiKey = process.env.DEVWARS_API_KEY;

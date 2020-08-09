@@ -12,6 +12,7 @@
         "release": "standard-version"
     },
     "dependencies": {
+        "DevwarsClient": "git://github.com/DevWars/DevWars-API-Client#f671868b53e92ce7be63a9424b67ac3ce72da6a2",
         "axios": "^0.19.2",
         "camelize": "^1.0.0",
         "dotenv": "^8.2.0",
