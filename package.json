@@ -19,7 +19,7 @@
         "firebase-admin": "^8.13.0",
         "lodash": "^4.17.19",
         "ms": "^2.1.1",
-        "nodemon": "^2.0.4",
+        "nodemon": "^2.0.5",
         "splitargs": "0.0.7",
         "tmi.js": "^1.5.0",
         "twitch": "^4.1.3"
