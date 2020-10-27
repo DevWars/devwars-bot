@@ -30,10 +30,18 @@ async function awardCoins() {
 
     const updates = [];
     for (const hype of bot.hype.hypes) {
-        updates.push({ user: hype.user, amount: winnings });
+        const request = devwarsApi.linkedAccounts.updateCoinsByProviderAndId(
+            'twitch',
+            hype.user.id,
+            hype.user.username,
+            winnings
+        );
+
+        updates.push(request);
     }
 
-    await devwarsApi.updateCoinsForUsers(updates);
+    await Promise.all(updates);
+
     return bot.say(`Everyone who boarded the Hype Train received ${coins(winnings)}! PogChamp PogChamp PogChamp`);
 }
 

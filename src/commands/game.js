@@ -5,16 +5,17 @@ const devwarsApi = require('../apis/devwarsApi');
 const firebaseService = require('../services/firebase.service');
 
 bot.addCommand('@startgame', async () => {
-    if (bot.game.active === true) {
-        return bot.say('Game is already active');
-    }
+    if (bot.game.active === true) return bot.say('Game is already active');
 
-    const { data: game } = await devwarsApi.getActiveGame();
+    const {
+        data: [game],
+    } = await devwarsApi.games.gamesWithPaging({
+        first: 1,
+        status: 'active',
+        season: 3,
+    });
 
-    if (!game) {
-        return bot.say('There is currently no active game');
-    }
-
+    if (!game) return bot.say('There is currently no active game');
     const theme = game.mode || 'Classic';
 
     bot.game.stage = 'objective';
@@ -43,35 +44,52 @@ bot.addCommand('@endgame', async () => {
         return bot.say('There is currently no active game');
     }
 
-    const { data: game } = await devwarsApi.getActiveGame();
-    await devwarsApi.endGame(game.id);
+    const { data } = await devwarsApi.games.gamesWithPaging({
+        first: 1,
+        status: 'active',
+        season: 3,
+    });
+
+    await devwarsApi.games.endGame(data[0].id);
 
     bot.game.active = false;
     return bot.say('Game has ended!');
 });
 
 bot.addCommand('!apply', async (ctx) => {
-    const { data: game } = await devwarsApi.getActiveGame();
-    if (!game) return bot.say('There is currently no active game');
+    try {
+        const {
+            data: [game],
+        } = await devwarsApi.games.gamesWithPaging({
+            first: 1,
+            status: 'active',
+            season: 3,
+        });
 
-    const { id, username } = ctx.user;
-    const { status, error } = await devwarsApi.signUpForActiveGame(game.schedule, id);
+        if (game == null) return bot.say('There is currently no active game');
 
-    if (status === 400) {
-        const message = `${username}, you need to connect your Twitch account on DevWars.tv to use !apply.`;
-        return bot.say(message);
+        const [devwarsUser] = await devwarsApi.search.searchForUsersByConnections({
+            provider: 'twitch',
+            id: ctx.user.id,
+            limit: 1,
+        });
+
+        if (devwarsUser == null) {
+            const message = `Sorry, @${ctx.user.username}, it does not look liked you have connected your account.`;
+            bot.say(message);
+        }
+
+        try {
+            await devwarsApi.games.applyToGameAsPlayer(game.id, devwarsUser.id);
+        } catch (error) {
+            return bot.say(`Sorry @${ctx.user.username}, ${error.message.toLowerCase()}`);
+        }
+
+        return bot.say(`${username} signed up for the ${game.mode} game! PogChamp devwarsLogo`);
+    } catch (error) {
+        console.log(error);
+        return bot.say(`Sorry @${username}, something went wrong.`);
     }
-
-    if (status === 409) {
-        return bot.say(`${username}, you have already applied for this game.`);
-    }
-
-    if (status !== 200 && error != null) {
-        return bot.whisper(ctx.user, error);
-    }
-
-    const message = `${username} signed up for the ${game.mode} game! PogChamp devwarsLogo`;
-    return bot.say(message);
 });
 
 /**
@@ -82,6 +100,13 @@ bot.addCommand('@showgame', async () => {
 });
 
 bot.addCommand('@activegame', async () => {
-    const { data: game } = await devwarsApi.getActiveGame();
+    const {
+        data: [game],
+    } = await devwarsApi.games.gamesWithPaging({
+        first: 1,
+        status: 'active',
+        season: 3,
+    });
+
     console.log(game);
 });
