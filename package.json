@@ -21,7 +21,7 @@
         "ms": "^2.1.1",
         "nodemon": "^2.0.4",
         "splitargs": "0.0.7",
-        "tmi.js": "^1.5.0",
+        "tmi.js": "^1.7.1",
         "twitch": "^4.1.3"
     },
     "devDependencies": {
