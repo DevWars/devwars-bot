@@ -7,7 +7,7 @@
 <br>
 <p align="center">
     <a href="">
-    <img src="https://img.shields.io/badge/Nodejs-v10.0.0-green.svg" alt="nodejs version">
+    <img src="https://img.shields.io/badge/Nodejs-v14.5.x-green.svg" alt="nodejs version">
     </a>
     <a href="http://typeorm.io/#/">
     <img src="https://img.shields.io/badge/tmi.js-v1.3.1-purple.svg" alt="tmi.js version">
@@ -25,10 +25,9 @@ Welcome to the [DevWars](https://wwww.devwars.tv/) Bot codebase. This bot is res
 
 ### Prerequisites
 
--   [Nodejs](https://nodejs.org/en/): 10.0 or higher
+-   [Nodejs](https://nodejs.org/en/): 14.5.x
 -   [Twitch](https://dev.twitch.tv/docs/irc): Account username and oauth
 -   (optional) [DevWars API](https://github.com/DevWars/devwars-api): Run DevWars API locally to test endpoints the bot hits
--   (optional) [Firebase](https://firebase.google.com/): service account for `firebase.json` added to root project folder
 
 ### Dependency Installation
 
@@ -38,7 +37,32 @@ Run `npm run install` to install dependent node_modules.
 
 Make a copy of the `.env.example` file in the same directory and rename the given file to `.env`. This will be loaded up into the application when it first starts running. These are required configuration settings to ensure correct function. Process through the newly created file and make the required changes if needed.
 
+**Twitch Config**
+
 Make a copy of the `twitch.config.example.json` file and rename the given file to `twitch.config.json`. This will be loaded and maintained by the Twitch service, used to communicate to the api. Using a JSON file will allow the automatic updating/refreshing of the access token when it expires.
+
+To obtain the initial `accessToken` and `refreshToken`:
+
+1. Register Your Application [here](https://dev.twitch.tv/)
+   - oAuth Redirect Url = `http://localhost`
+   - Category = `Chat Bot`
+2. Get `Code` with
+```
+GET https://id.twitch.tv/oauth2/authorize
+    --data-urlencode
+    ?response_type=code
+    &client_id=<your client ID>
+    &redirect_uri=<your redirect URI>
+```
+3. Get `accessToken` and `refreshToken`
+```
+POST https://id.twitch.tv/oauth2/token
+    ?client_id=<your client ID>
+    &client_secret=<your client secret>
+    &code=<authorization code received above>
+    &grant_type=authorization_code
+    &redirect_uri=<your redirect URI>
+```
 
 ### Testing
 

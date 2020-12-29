@@ -1,13 +1,31 @@
 require('dotenv').config();
 
-const username = process.env.TWITCH_USERNAME;
-const password = process.env.TWITCH_OAUTH_TOKEN;
-const channel = process.env.TWITCH_CHANNEL_NAME;
-
-const config = {
-    channel,
-    username,
-    password,
+const twitch = {
+    channel: process.env.TWITCH_CHANNEL,
+    username: process.env.TWITCH_USERNAME,
+    password: process.env.TWITCH_OAUTH_TOKEN,
+    clientId: process.env.TWITCH_CLIENT_ID,
+    clientSecret: process.env.TWITCH_CLIENT_SECRET,
 };
 
-module.exports = config;
+const devwars = {
+    url: process.env.DEVWARS_API_URL,
+    apiKey: process.env.DEVWARS_API_KEY,
+};
+
+const devwarsLive = {
+    url: process.env.DEVWARS_LIVE_URL,
+    apiKey: process.env.DEVWARS_LIVE_KEY,
+};
+
+const devwarsWidgets = {
+    port: process.env.DEVWARS_WIDGETS_PORT,
+};
+
+module.exports = {
+    env: process.env.NODE_ENV,
+    twitch,
+    devwars,
+    devwarsLive,
+    devwarsWidgets,
+};

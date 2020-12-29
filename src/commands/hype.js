@@ -1,6 +1,6 @@
 const ms = require('ms');
 const bot = require('../common/bot');
-const devwarsApi = require('../apis/devwarsApi');
+const devwarsService = require('../services/devwars.service');
 const { validNumber, coins } = require('../utils');
 
 const hypeEmote = '🚃 ';
@@ -16,12 +16,12 @@ function getHypeAmount() {
 
 function addHype(user) {
     const amount = user.subscriber ? 3 : 1;
-    const role = user.subscriber ? '[🔥 Subscriber] ' : '';
+    const role = user.subscriber ? '[🔥 Subscriber]' : '';
 
     const message = getHypeAmount() === 0 ? 'boarded the Hype Train first with' : 'boarded the Hype Train with';
 
     bot.hype.hypes.push({ user, amount });
-    return bot.say(`${role}${user.username} ${message} ${hypeEmote.repeat(amount)}`);
+    return bot.say(`${role} ${user.username} ${message} ${hypeEmote.repeat(amount)}`);
 }
 
 async function awardCoins() {
@@ -30,23 +30,15 @@ async function awardCoins() {
 
     const updates = [];
     for (const hype of bot.hype.hypes) {
-        const request = devwarsApi.linkedAccounts.updateCoinsByProviderAndId(
-            'twitch',
-            hype.user.id,
-            hype.user.username,
-            winnings
-        );
-
-        updates.push(request);
+        updates.push({ user: hype.user, amount: winnings });
     }
 
-    await Promise.all(updates);
-
+    await devwarsService.updateCoinsForUsers(updates);
     return bot.say(`Everyone who boarded the Hype Train received ${coins(winnings)}! PogChamp PogChamp PogChamp`);
 }
 
 async function closeHype() {
-    clearInterval(bot.hype.timer);
+    clearInterval(bot.hype._timeout);
 
     const hypeAmt = getHypeAmount();
     bot.hype.open = false;
@@ -67,7 +59,7 @@ function openHype(minutes) {
     let duration = 1000 * 60 * minutes;
     bot.hype.open = true;
 
-    bot.hype.timer = setInterval(() => {
+    bot.hype._timeout = setInterval(() => {
         duration -= 1000;
 
         if (duration === 1000 * 60) bot.say('The Hype Train is leaving in 1 minute! Type !hype to board');
@@ -110,11 +102,4 @@ bot.addCommand('#openhype <minutes>', (ctx, args) => {
 
 bot.addCommand('#closehype', async () => {
     await closeHype();
-});
-
-/**
- * Developer commands
- */
-bot.addCommand('@showhype', () => {
-    console.log(bot.hype);
 });

@@ -1,98 +1,58 @@
 const _ = require('lodash');
 const ms = require('ms');
 const bot = require('../common/bot');
-const { validNumber, formatCoins } = require('../utils');
-const devwarsApi = require('../apis/devwarsApi');
-const firebaseService = require('../services/firebase.service');
+const { validNumber, coins } = require('../utils');
+const devwarsService = require('../services/devwars.service');
+const devwarsWidgetsService = require('../services/devwarsWidgets.service');
 
-async function addBet(user, amount, team) {
-    bot.betting.bets[user.id] = {
-        user,
-        amount,
-        team,
-        createdAt: Date.now(),
-    };
-
-    await firebaseService.addBetOnFrame(user, amount, team);
+async function addBet(twitchUser, amount, option) {
+    const user = { id: twitchUser.id, username: twitchUser.displayName };
+    const bet = { user, amount, option };
+    bot.betting.bets.set(user.id, bet);
+    devwarsWidgetsService.broadcastBet(bet);
+    devwarsWidgetsService.updateBettingState();
 }
 
-function removeBet(user) {
-    delete bot.betting.bets[user.id];
-}
-
-function hasBet(user) {
-    return bot.betting.bets[user.id];
-}
-
-function validTeam(team) {
-    return _.includes(bot.betting.teams, team);
-}
-
-async function awardWinners(winningTeam) {
+async function awardWinners(winningOption) {
     const winMultiplier = 1 / 2;
 
     const betters = [];
-
-    for (const bet of Object.values(bot.betting.bets)) {
-        const { id: userId, username } = bet.user;
-
-        if (bet.team === winningTeam) {
+    for (const bet of bot.betting.bets.values()) {
+        if (bet.option === winningOption) {
             const winnings = bet.amount + Math.round(bet.amount * winMultiplier);
-
-            const request = devwarsApi.linkedAccounts.updateCoinsByProviderAndId('twitch', userId, username, winnings);
-            betters.push(request);
-
-            bot.say(`${bet.user.username} won ${formatCoins(winnings)} from their bet!`);
-            continue;
-        }
-
-        if (winningTeam === 'tie' && bet.team !== 'tie') {
+            betters.push({ user: bet.user, amount: winnings });
+            bot.say(`${bet.user.username} won ${coins(winnings)} from their bet!`);
+        } else if (winningOption === 'tie' && bet.option !== 'tie') {
             const halfAmt = Math.round(bet.amount / 2);
-
-            const request = devwarsApi.linkedAccounts.updateCoinsByProviderAndId('twitch', userId, username, halfAmt);
-            betters.push(request);
-
-            bot.say(`${bet.user.username} lost only ${formatCoins(halfAmt)} (50% of their bet) since it was a tie`);
-            continue;
+            betters.push({ user: bet.user, amount: -halfAmt });
+            bot.say(`${bet.user.username} lost only ${coins(halfAmt)} (50% of their bet) since it was a tie`);
+        } else {
+            betters.push({ user: bet.user, amount: -bet.amount });
+            bot.say(`${bet.user.username} lost ${coins(bet.amount)} from their bet BibleThump`);
         }
-
-        const request = devwarsApi.linkedAccounts.updateCoinsByProviderAndId('twitch', userId, username, -bet.amount);
-        betters.push(request);
-
-        bot.say(`${bet.user.username} lost ${formatCoins(bet.amount)} from their bet BibleThump`);
     }
 
-    await Promise.all(betters);
-}
-
-async function resetBets() {
-    bot.betting.bets = {};
-
-    await firebaseService.resetBetsOnFrame();
+    await devwarsService.updateCoinsForUsers(betters);
 }
 
 async function closeBets() {
-    clearTimeout(bot.betting.timer);
+    clearTimeout(bot.betting._timeout);
 
-    if (bot.betting.open === false) {
+    if (!bot.betting.open) {
         return bot.say('Betting is already closed');
     }
 
-    if (bot.game.stage === 'betting') {
-        bot.game.stage = 'objective';
-        await firebaseService.setStage('objective');
-    }
-
     bot.betting.open = false;
-    bot.betting.duration = -1;
+
+    devwarsWidgetsService.updateBettingState();
 
     bot.say('Betting is now closed');
 }
 
 async function openBets(minutes) {
-    clearTimeout(bot.betting.openTimer);
+    bot.betting.bets = new Map();
 
-    if (bot.betting.open === true) {
+    if (bot.betting.open) {
         return bot.say('Betting is already open');
     }
 
@@ -100,29 +60,21 @@ async function openBets(minutes) {
         return bot.say('<minutes> must be a number');
     }
 
-    await resetBets();
-
+    const duration = ms(minutes + 'm');
+    bot.betting._timeout = setTimeout(closeBets, duration);
     bot.betting.open = true;
-    bot.betting.duration = minutes;
-    bot.game.stage = 'betting';
+    bot.betting.startAt = Date.now();
+    bot.betting.endAt = Date.now() + duration;
 
-    await firebaseService.setStage('betting');
-    await firebaseService.setBetting(minutes);
-
-    bot.betting.timer = setTimeout(() => {
-        if (bot.betting.open === true) {
-            return closeBets();
-        }
-    }, ms(`${bot.betting.duration}m`));
+    devwarsWidgetsService.updateBettingState();
 
     bot.say(`Betting is now open for ${minutes} ${minutes > 1 ? 'minutes' : 'minute'}!`);
 }
 
-bot.addCommand('!bet <amount> <team>', async (ctx, args) => {
-    const [amount, team] = args;
+bot.addCommand('!bet <amount> <option>', async (ctx, args) => {
+    const [amount, option] = args;
 
-    const { coins } = await devwarsApi.linkedAccounts.getCoinsByProviderAndId('twitch', ctx.user.id);
-    const prevBet = await hasBet(ctx.user);
+    const userCoins = await devwarsService.getUserCoins(ctx.user);
 
     if (!bot.betting.open) {
         return bot.say('Betting is closed');
@@ -132,29 +84,26 @@ bot.addCommand('!bet <amount> <team>', async (ctx, args) => {
         return bot.whisper(ctx.user, '<amount> must be a number');
     }
 
-    if (!validTeam(team)) {
-        return bot.whisper(ctx.user, `<team> must be one from [${bot.betting.teams}]`);
+    const validOption = _.includes(bot.betting.options, option);
+    if (!validOption) {
+        return bot.whisper(ctx.user, `<option> must be one from [${bot.betting.options}]`);
     }
 
     if (amount <= 0) {
         return bot.whisper(ctx.user, '<amount> you must bet at least more than devwarsCoin 0');
     }
 
-    if (coins < amount) {
-        return bot.say(`${ctx.user.username} tried to bet ${formatCoins(amount)} but only has ${formatCoins(coins)}`);
+    if (userCoins < amount) {
+        return bot.say(`${ctx.user.username} tried to bet ${coins(amount)} but only has ${coins(userCoins)}`);
     }
 
-    if (prevBet) {
-        await firebaseService.removeBetOnFrame(ctx.user.username);
-    }
+    const message = bot.betting.bets.has(ctx.user.id)
+        ? `You changed your bet to ${coins(amount)} on ${option}`
+        : `You bet ${coins(amount)} on ${option}`;
 
-    await addBet(ctx.user, amount, team);
+    await addBet(ctx.user, amount, option);
 
-    const message = prevBet
-        ? `${ctx.user.username} changed their bet to ${formatCoins(amount)} on [${team}]`
-        : `${ctx.user.username} bet ${formatCoins(amount)} on [${team}]`;
-
-    bot.say(message);
+    bot.whisper(ctx.user, message);
 });
 
 bot.addCommand('!clearbet', async (ctx) => {
@@ -162,35 +111,32 @@ bot.addCommand('!clearbet', async (ctx) => {
         return bot.say('Betting is closed');
     }
 
-    const prevBet = await hasBet(ctx.user);
+    const prevBet = bot.betting.bets.get(ctx.user.id);
     if (!prevBet) {
         return bot.say(`${ctx.user.username}, you have not placed a bet`);
     }
 
-    await removeBet(ctx.user);
-    await firebaseService.removeBetOnFrame(ctx.user.username);
-    return bot.say(`${ctx.user.username} retracted their bet of ${formatCoins(prevBet.amount)}`);
+    bot.betting.bets.delete(ctx.user.id);
+
+    devwarsWidgetsService.updateBettingState();
+
+    return bot.say(`${ctx.user.username} retracted their bet of ${coins(prevBet.amount)}`);
 });
 
-bot.addCommand('@resetbets', async () => {
-    await resetBets();
-    return bot.say('All bets have been reset!');
-});
+bot.addCommand('@betwinner <option>', async (ctx, args) => {
+    const [option] = args;
 
-bot.addCommand('@betwinner <team>', async (ctx, args) => {
-    const [team] = args;
-
-    if (!validTeam(team)) {
-        return bot.say(`<team> must be one from [${bot.betting.teams}]`);
+    if (!validOption(option)) {
+        return bot.say(`<option> must be one from [${bot.betting.options}]`);
     }
 
     if (bot.betting.open === true) {
         await closeBets();
     }
 
-    await awardWinners(team);
-    await firebaseService.emptyFrameBetters();
-    return bot.say(`Winners awarded! Everyone who bet [${team}] won coins! devwarsCoin PogChamp`);
+    await awardWinners(option);
+
+    return bot.say(`Winners awarded! Everyone who bet [${option}] won coins! devwarsCoin PogChamp`);
 });
 
 bot.addCommand('@openbets <minutes>', async (ctx, args) => {
@@ -201,11 +147,4 @@ bot.addCommand('@openbets <minutes>', async (ctx, args) => {
 
 bot.addCommand('@closebets', async () => {
     await closeBets();
-});
-
-/**
- * Developer commands
- */
-bot.addCommand('@showbets', async () => {
-    console.log('bets', bot.betting);
 });
