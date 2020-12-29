@@ -7,7 +7,7 @@
 <br>
 <p align="center">
     <a href="">
-    <img src="https://img.shields.io/badge/Nodejs-v14.0.0-green.svg" alt="nodejs version">
+    <img src="https://img.shields.io/badge/Nodejs-v14.5.x-green.svg" alt="nodejs version">
     </a>
     <a href="http://typeorm.io/#/">
     <img src="https://img.shields.io/badge/tmi.js-v1.3.1-purple.svg" alt="tmi.js version">
@@ -25,7 +25,7 @@ Welcome to the [DevWars](https://wwww.devwars.tv/) Bot codebase. This bot is res
 
 ### Prerequisites
 
--   [Nodejs](https://nodejs.org/en/): 14.0 or higher
+-   [Nodejs](https://nodejs.org/en/): 14.5.x
 -   [Twitch](https://dev.twitch.tv/docs/irc): Account username and oauth
 -   (optional) [DevWars API](https://github.com/DevWars/devwars-api): Run DevWars API locally to test endpoints the bot hits
 
