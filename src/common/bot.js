@@ -1,58 +1,32 @@
 const tmi = require('tmi.js');
 const ms = require('ms');
-
 const config = require('../config');
 const Command = require('./Command');
 const User = require('./User');
-const { giveCoinsToAllViewers } = require('../services/twitch.service');
-const firebaseService = require('../services/firebase.service');
+const twitchService = require('../services/twitch.service');
+const devwarsLiveService = require('../services/devwarsLive.service');
 const { parseArguments, checkArgumentLength, isCommand, getCommandName, coins } = require('../utils');
 
 class Bot {
     constructor() {
         this.client = null;
-        this.channel = config.channel;
-        this.isFirstChange = true;
+        this.channel = config.twitch.channel;
 
         this.symbols = ['!', '$', '#', '@'];
 
-        this.game = {
-            active: false,
-            stage: 'objective',
-            stages: ['objective', 'betting', 'voting', 'poll'],
-        };
-
-        this.voting = {
-            open: false,
-            category: 'ui',
-            categories: ['ui', 'ux', 'tiebreaker'],
-            votes: [],
-            duration: -1,
-            timer: null,
-        };
-
         this.betting = {
+            _timeout: null,
             open: false,
-            teams: ['blue', 'red', 'tie'],
-            duration: -1,
-            bets: {},
-            timer: null,
-            openTimer: null,
-        };
-
-        this.poll = {
-            open: false,
-            question: '',
-            options: [],
-            votes: [],
-            duration: -1,
-            timer: null,
+            options: ['blue', 'red', 'tie'],
+            bets: new Map(),
+            startAt: null,
+            endAt: null,
         };
 
         this.hype = {
+            _timeout: null,
             open: false,
             hypes: [],
-            timer: null,
         };
 
         this.commands = {};
@@ -85,37 +59,19 @@ class Bot {
         }
     }
 
-    async onEditorStateChange() {
-        await firebaseService.listenForStageChange((state) => {
-            // Don't listen for changes on bot boot up
-            if (this.isFirstChange) {
-                this.isFirstChange = false;
-                return;
-            }
-
-            if (state === 'running') {
-                this.selfCommand('!startgame');
-            }
-
-            if (state === 'ended') {
-                // When live game ends on editor
-            }
-        });
-    }
-
     async onGiveOut() {
-        if (this.game.active) {
+        if (devwarsLiveService.game) {
             const newBase = this.giveOutAmount * 2;
             let bonus = 0;
 
             if (Math.random() < 0.1) bonus = Math.floor(Math.random() * 1000);
-            await giveCoinsToAllViewers(newBase + bonus);
+            await twitchService.giveCoinsToAllViewers(newBase + bonus);
 
             const bonusMsg = bonus ? `and a bonus of ${coins(bonus)}!` : '';
             return this.say(`Everyone received ${coins(newBase)} ${bonusMsg}`);
         }
 
-        await giveCoinsToAllViewers(this.giveOutAmount);
+        await twitchService.giveCoinsToAllViewers(this.giveOutAmount);
         this.say(`Everyone received ${coins(this.giveOutAmount)}!`);
     }
 
@@ -156,16 +112,15 @@ class Bot {
             options: { debug: true },
             connection: { reconnect: true },
             identity: {
-                username: config.username,
-                password: config.password,
+                username: config.twitch.username,
+                password: config.twitch.password,
             },
-            channels: [`#${config.channel}`],
+            channels: [`#${config.twitch.channel}`],
         });
 
         this.client.on('chat', this.onChat.bind(this));
 
         await this.client.connect();
-        await this.onEditorStateChange();
     }
 }
 

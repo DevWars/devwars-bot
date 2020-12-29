@@ -1,7 +1,4 @@
 {
-    "clientId": "",
-    "clientSecret": "",
-    "channel": "devwars",
     "accessToken": "",
     "refreshToken": ""
 }

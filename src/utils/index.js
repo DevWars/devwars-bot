@@ -18,11 +18,9 @@ function parseArguments(message) {
 
     if (args.match(/\|/)) {
         let options = args.split('|')[0];
-        const optionsSpread = args
-            .split('|')
-            .slice(1)
-            .map((opt) => opt.trim())
-            .filter((question) => question.length > 1);
+        const optionsSpread = args.split('|').slice(1)
+            .map(opt => opt.trim())
+            .filter(question => question.length > 1);
 
         options = splitargs(options);
         args = [...options, ...optionsSpread];
@@ -40,7 +38,7 @@ function parseArguments(message) {
 }
 
 function checkArgumentLength(inputArgs, commandArgs) {
-    const unlimitedArgs = commandArgs.find((arg) => arg.includes('...'));
+    const unlimitedArgs = commandArgs.find(arg => arg.includes('...'));
 
     if (!unlimitedArgs && inputArgs.length > commandArgs.length) {
         return 'Too many arguments provided.';
@@ -55,14 +53,14 @@ function checkArgumentLength(inputArgs, commandArgs) {
 
 function getArgumentProps(commandTemplate) {
     const argArr = commandTemplate.split(' ').splice(1);
-    return argArr.map((arg) => arg.replace(/[<>]/g, ''));
+    return argArr.map(arg => arg.replace(/[<>]/g, ''));
 }
 
 function validNumber(number) {
-    return !Number.isNaN(number) && number % 1 === 0 && number >= 0;
+    return (!Number.isNaN(number) && number % 1 === 0 && number >= 0);
 }
 
-function formatCoins(number) {
+function coins(number) {
     const formattedCoins = number.toLocaleString();
     return `devwarsCoin ${formattedCoins}`;
 }
@@ -74,5 +72,5 @@ module.exports = {
     checkArgumentLength,
     getArgumentProps,
     validNumber,
-    formatCoins,
+    coins,
 };

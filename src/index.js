@@ -1,14 +1,15 @@
 const bot = require('./common/bot');
+const devWarsLiveService = require('./services/devwarsLive.service');
+const devWarsWidgetsService = require('./services/devwarsWidgets.service');
 
 // Register commands
 require('./commands');
-require('./commands/game');
 require('./commands/betting');
 require('./commands/voting');
-require('./commands/poll');
 require('./commands/hype');
 
 (async () => {
-    // connect bot
+    devWarsLiveService.connect();
+    devWarsWidgetsService.init();
     await bot.connect();
 })();

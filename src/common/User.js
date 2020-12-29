@@ -3,13 +3,14 @@ const config = require('../config');
 
 class User {
     constructor(apiUser) {
-        const { userId, username, mod, subscriber } = camelize(apiUser);
+        const { userId, username, displayName, mod, subscriber } = camelize(apiUser);
 
-        this.id = userId;
+        this.id = Number(userId);
         this.username = username;
+        this.displayName = displayName;
         this.subscriber = subscriber;
 
-        if (this.username === config.channel) {
+        if (this.username === config.twitch.channel) {
             this.role = 'admin';
         } else if (mod) {
             this.role = 'mod';

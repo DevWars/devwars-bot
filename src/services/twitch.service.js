@@ -1,11 +1,9 @@
-const TwitchClient = require('twitch').default;
-const path = require('path');
-const fs = require('fs');
 const _ = require('lodash');
-
-const devwarsApi = require('../apis/devwarsApi');
-
-let singletonInstance = null;
+const TwitchClient = require('twitch').default;
+const fs = require('fs');
+const path = require('path');
+const devwarsService = require('./devwars.service');
+const config = require('../config');
 
 class TwitchService {
     /**
@@ -13,22 +11,28 @@ class TwitchService {
      * @param {string} configurationPath The path the related configuration exists.
      */
     constructor(configurationPath) {
-        if (singletonInstance != null) return singletonInstance;
-
         this.configurationPath = configurationPath;
-        this.configuration = JSON.parse(fs.readFileSync(this.configurationPath));
+        this.twitchConfigFile = JSON.parse(fs.readFileSync(this.configurationPath));
 
         // throw if any of the configuration is missing.
-        ['clientSecret', 'refreshToken', 'clientId', 'accessToken', 'channel'].forEach((required) => {
-            if (this.configuration[required] == null) throw new Error(`configuration property ${required} is required`);
+        ['accessToken', 'refreshToken'].forEach((config) => {
+            if (this.twitchConfigFile.accessToken == null) {
+                throw new Error(`configFile property ${config} is required`);
+            }
         });
 
-        const { clientId, accessToken, clientSecret, refreshToken } = this.configuration;
+        const refreshConfig = {
+            clientSecret: config.twitch.clientSecret,
+            refreshToken: this.twitchConfigFile.refreshToken,
+            onRefresh: this.onRefreshToken.bind(this),
+        };
 
-        const refreshConfig = { clientSecret, refreshToken, onRefresh: this.onRefreshToken.bind(this) };
-        this.twitchClient = TwitchClient.withCredentials(clientId, accessToken, undefined, refreshConfig);
-
-        singletonInstance = this;
+        this.twitchClient = TwitchClient.withCredentials(
+            config.twitch.clientId,
+            this.twitchConfigFile.accessToken,
+            undefined,
+            refreshConfig,
+        );
     }
 
     /**
@@ -39,34 +43,24 @@ class TwitchService {
      * @param {string} scope The scope the access token is valid for, i.e. what this token enables you to do.
      */
     onRefreshToken({ accessToken, refreshToken, scope }) {
-        console.log('updated tokens');
-        this.configuration.accessToken = accessToken;
-        this.configuration.refreshToken = refreshToken;
+        console.log('Updated tokens');
+        this.twitchConfigFile.accessToken = accessToken;
+        this.twitchConfigFile.refreshToken = refreshToken;
 
         // Update the local configuration file with the related data.
-        fs.writeFileSync(this.configurationPath, JSON.stringify(this.configuration));
+        fs.writeFileSync(this.configurationPath, JSON.stringify(this.twitchConfigFile));
     }
 
-    /**
-     * Gives coins to all viewers.
-     * @param {number} amount The amount of coins for the given users.
-     */
     async giveCoinsToAllViewers(amount) {
-        const usernames = await this.getViewers();
+        const usernames = await this.getCurrentViewers();
         const twitchUsers = await this.getUsersByUsernames(usernames);
 
-        const updates = _.map(twitchUsers, (user) =>
-            devwarsApi.linkedAccounts.updateCoinsByProviderAndId('twitch', user.id, user.username, amount)
-        );
-
-        return await Promise.all(updates);
+        const updates = twitchUsers.map((user) => ({ user, amount }));
+        return devwarsService.updateCoinsForUsers(updates);
     }
 
-    /**
-     * Get all the current viewers for the given channel in the configuration.
-     */
-    async getViewers() {
-        const viewers = await this.twitchClient.unsupported.getChatters(this.configuration.channel);
+    async getCurrentViewers() {
+        const viewers = await this.twitchClient.unsupported.getChatters(config.twitch.channel);
         return _.uniq(viewers.allChatters);
     }
 
@@ -86,16 +80,10 @@ class TwitchService {
         });
     }
 
-    /**
-     * Get a single user by the given username.
-     * @param {string} username The single users username.
-     */
     async getUserByUsername(username) {
         const [user] = await this.getUsersByUsernames([username]);
         return user;
     }
 }
 
-const twitchService = new TwitchService(path.join(__dirname, '../../twitch.config.json'));
-
-module.exports = twitchService;
+module.exports = new TwitchService(path.join(__dirname, '../../twitch.config.json'));

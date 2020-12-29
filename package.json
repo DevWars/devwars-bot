@@ -1,6 +1,6 @@
 {
     "name": "devwars-bot",
-    "version": "0.0.1",
+    "version": "0.0.0",
     "description": "Official Twitch Bot for DevWars",
     "author": "DevWars, LLC",
     "main": "index.js",
@@ -8,27 +8,27 @@
     "scripts": {
         "start": "node ./src",
         "dev": "nodemon ./src",
-        "test": "jest",
-        "release": "standard-version"
+        "test": "jest"
     },
     "dependencies": {
-        "DevwarsClient": "git://github.com/DevWars/DevWars-API-Client#f671868b53e92ce7be63a9424b67ac3ce72da6a2",
-        "axios": "^0.19.2",
+        "axios": "^0.21.1",
         "camelize": "^1.0.0",
+        "devwars-api-client": "git://github.com/DevWars/DevWars-API-Client#6501e60a3c568b3f133c0d4db8d9e46f146afda7",
         "dotenv": "^8.2.0",
-        "firebase-admin": "^8.13.0",
-        "lodash": "^4.17.19",
+        "lodash": "^4.17.11",
         "ms": "^2.1.1",
-        "nodemon": "^2.0.4",
+        "node-fetch": "^2.6.1",
+        "socket.io": "^3.0.4",
+        "socket.io-client": "^3.0.4",
         "splitargs": "0.0.7",
         "tmi.js": "^1.5.0",
-        "twitch": "^4.1.3"
+        "twitch": "^4.0.10"
     },
     "devDependencies": {
-        "eslint": "^7.6.0",
-        "eslint-config-airbnb-base": "^14.2.0",
-        "eslint-plugin-import": "^2.22.0",
-        "jest": "^26.4.0",
-        "standard-version": "^8.0.2"
+        "eslint": "^6.8.0",
+        "eslint-config-airbnb-base": "^14.1.0",
+        "eslint-plugin-import": "^2.20.2",
+        "jest": "^25.5.3",
+        "nodemon": "^2.0.6"
     }
 }
