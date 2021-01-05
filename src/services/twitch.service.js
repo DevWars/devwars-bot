@@ -1,54 +1,37 @@
-const _ = require('lodash');
-const TwitchClient = require('twitch').default;
 const fs = require('fs');
 const path = require('path');
-const devwarsService = require('./devwars.service');
+const _ = require('lodash');
+const TwitchClient = require('twitch').default;
 const config = require('../config');
+const devwarsService = require('./devwars.service');
 
 class TwitchService {
-    /**
-     * Creates a new wrapper around the twitch client for communication to the helix api.
-     * @param {string} configurationPath The path the related configuration exists.
-     */
-    constructor(configurationPath) {
-        this.configurationPath = configurationPath;
-        this.twitchConfigFile = JSON.parse(fs.readFileSync(this.configurationPath));
+    twitchConfigPath = path.join(__dirname, '../../twitch.config.json');
+    twitchConfig = _.pick(config.twitch, ['accessToken', 'refreshToken']);
 
-        // throw if any of the configuration is missing.
-        ['accessToken', 'refreshToken'].forEach((config) => {
-            if (this.twitchConfigFile.accessToken == null) {
-                throw new Error(`configFile property ${config} is required`);
-            }
-        });
+    constructor() {
+        if (fs.existsSync(this.twitchConfigPath)) {
+            this.twitchConfig = JSON.parse(fs.readFileSync(this.twitchConfigPath));
+        }
 
         const refreshConfig = {
             clientSecret: config.twitch.clientSecret,
-            refreshToken: this.twitchConfigFile.refreshToken,
-            onRefresh: this.onRefreshToken.bind(this),
+            refreshToken: this.twitchConfig.refreshToken,
+            onRefresh: this.updateTwitchConfig.bind(this),
         };
 
         this.twitchClient = TwitchClient.withCredentials(
             config.twitch.clientId,
-            this.twitchConfigFile.accessToken,
+            this.twitchConfig.accessToken,
             undefined,
             refreshConfig,
         );
     }
 
-    /**
-     * Triggered when the refresh token is used to update the access token.
-     *
-     * @param {string} accessToken The updated access token for twitch.
-     * @param {string} refreshToken The updated refresh token for twitch.
-     * @param {string} scope The scope the access token is valid for, i.e. what this token enables you to do.
-     */
-    onRefreshToken({ accessToken, refreshToken, scope }) {
-        console.log('Updated tokens');
-        this.twitchConfigFile.accessToken = accessToken;
-        this.twitchConfigFile.refreshToken = refreshToken;
-
+    updateTwitchConfig(twitchConfig) {
+        this.twitchConfig = _.pick(twitchConfig, ['accessToken', 'refreshToken']);
         // Update the local configuration file with the related data.
-        fs.writeFileSync(this.configurationPath, JSON.stringify(this.twitchConfigFile));
+        fs.writeFileSync(this.twitchConfigPath, JSON.stringify(this.twitchConfig, null, 2));
     }
 
     async giveCoinsToAllViewers(amount) {
@@ -64,20 +47,14 @@ class TwitchService {
         return _.uniq(viewers.allChatters);
     }
 
-    /**
-     * Gathers all users from twitch based on the usernames in blocks of 100.
-     * @param {string[]} usernames The users being gathered.
-     */
+    // Gathers all users from twitch in chunks of 100.
     async getUsersByUsernames(usernames) {
         const requests = _.chunk(usernames, 100).map((users) => {
             return this.twitchClient.helix.users.getUsersByNames(users);
         });
 
         const results = _.flatten(await Promise.all(requests));
-
-        return _.map(results, (user) => {
-            return { id: user.id, username: user.name };
-        });
+        return results.map((user) => ({ id: user.id, username: user.name }));
     }
 
     async getUserByUsername(username) {
@@ -86,4 +63,4 @@ class TwitchService {
     }
 }
 
-module.exports = new TwitchService(path.join(__dirname, '../../twitch.config.json'));
+module.exports = new TwitchService();
