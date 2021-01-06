@@ -11,6 +11,7 @@ class Bot {
     constructor() {
         this.client = null;
         this.channel = config.twitch.channel;
+        this.isLive = false;
 
         this.symbols = ['!', '$', '#', '@'];
 
@@ -32,7 +33,9 @@ class Bot {
         this.commands = {};
 
         this.giveOutAmount = 10;
-        this.giveOutInterval = setInterval(this.onGiveOut.bind(this), ms('15m'));
+        setInterval(this.onGiveOut.bind(this), ms('15m'));
+
+        setInterval(this.updateIsLiveStatus.bind(this), ms('1m'));
     }
 
     async onChat(channel, apiUser, message, self) {
@@ -75,15 +78,19 @@ class Bot {
         this.say(`Everyone received ${coins(this.giveOutAmount)}!`);
     }
 
-    async addCommand(template, action, interval) {
+    async addCommand(template, action) {
+        const command = new Command(template, action);
+        this.commands[command.name] = command;
+    }
+
+    async addAutoCommand(template, action, interval) {
         const command = new Command(template, action);
         this.commands[command.name] = command;
 
-        if (interval) {
-            setInterval(() => {
-                command.action();
-            }, interval);
-        }
+
+        setInterval(() => {
+            if (this.isLive) command.action();
+        }, ms(interval));
     }
 
     async selfCommand(command) {
@@ -92,6 +99,10 @@ class Bot {
 
         // Can't accept commands with ctx
         this.commands[commandName].action({}, args);
+    }
+
+    async updateIsLiveStatus() {
+        this.isLive = Boolean(await twitchService.checkStreamStatus());
     }
 
     action(message) {
@@ -121,6 +132,7 @@ class Bot {
         this.client.on('chat', this.onChat.bind(this));
 
         await this.client.connect();
+        await this.updateIsLiveStatus();
     }
 }
 

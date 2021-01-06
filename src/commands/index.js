@@ -1,4 +1,3 @@
-const ms = require('ms');
 const bot = require('../common/bot');
 const devwarsService = require('../services/devwars.service');
 const twitchService = require('../services/twitch.service');
@@ -16,29 +15,17 @@ async function setCoins(user, amount) {
 bot.addCommand('!help', helpCommand);
 bot.addCommand('!commands', helpCommand);
 
-bot.addCommand(
-    '!watch',
-    () => {
-        bot.say('Check out the code and websites! https://live.devwars.tv');
-    },
-    ms('5m')
-);
+bot.addAutoCommand('!watch', () => {
+    bot.say('Check out the code and websites! https://live.devwars.tv');
+}, '5m');
 
-bot.addCommand(
-    '!discord',
-    () => {
-        bot.say('Join our growing Discord community for developers by heading over to discord.gg/devwars');
-    },
-    ms('13m')
-);
+bot.addAutoCommand('!discord', () => {
+    bot.say('Join our growing Discord community for developers by heading over to discord.gg/devwars');
+}, '13m');
 
-bot.addCommand(
-    '!follow',
-    () => {
-        bot.say("Enjoying DevWars? Hit the follow button so you don't miss another stream!");
-    },
-    ms('21m')
-);
+bot.addAutoCommand( '!follow', () => {
+    bot.say("Enjoying DevWars? Hit the follow button so you don't miss another stream!");
+}, '21m');
 
 bot.addCommand('!coins', async (ctx) => {
     let userCoins = await devwarsService.getUserCoins(ctx.user);
