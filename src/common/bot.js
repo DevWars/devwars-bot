@@ -87,7 +87,6 @@ class Bot {
         const command = new Command(template, action);
         this.commands[command.name] = command;
 
-
         setInterval(() => {
             if (this.isLive) command.action();
         }, ms(interval));
