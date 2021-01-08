@@ -39,8 +39,8 @@ async function finalizeBets(winner) {
     const result = getOptionSummary(winner);
     const bets = Array.from(bot.betting.bets.values());
 
-    const betResults = bets.map(({ option, amount }) => ({
-        user: bet.user,
+    const betResults = bets.map(({ user, option, amount }) => ({
+        user,
         amount: option === winner ? (amount * result.ratio) + amount : -amount,
     }));
 
