@@ -61,6 +61,10 @@ class TwitchService {
         const [user] = await this.getUsersByUsernames([username]);
         return user;
     }
+
+    async checkStreamStatus() {
+        return this.twitchClient.helix.streams.getStreamByUserName(config.twitch.channel);
+    }
 }
 
 module.exports = new TwitchService();

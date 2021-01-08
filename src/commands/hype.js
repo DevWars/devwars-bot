@@ -34,7 +34,7 @@ async function awardCoins() {
     }
 
     await devwarsService.updateCoinsForUsers(updates);
-    return bot.say(`Everyone who boarded the Hype Train received ${coins(winnings)}! PogChamp PogChamp PogChamp`);
+    return bot.say(`Everyone who boarded the Hype Train received ${coins(winnings)}! PogU PogU PogU`);
 }
 
 async function closeHype() {
@@ -47,7 +47,7 @@ async function closeHype() {
         return bot.say('The Hype Train slowly rolled away in tears because it received no !hype BibleThump');
     }
 
-    bot.say(`The Hype Train left with a length of ${hypeAmt}! PogChamp 🚅 ${hypeEmote.repeat(hypeAmt)}`);
+    bot.say(`The Hype Train left with a length of ${hypeAmt}! PogU 🚅 ${hypeEmote.repeat(hypeAmt)}`);
 
     await awardCoins();
 
@@ -87,7 +87,7 @@ bot.addCommand('!hype', (ctx) => {
     addHype(ctx.user);
 
     const hypeAmt = getHypeAmount();
-    return bot.say(`${hypeAmt} PogChamp 🚅 ${hypeEmote.repeat(hypeAmt)}`);
+    return bot.say(`${hypeAmt} PogU 🚅 ${hypeEmote.repeat(hypeAmt)}`);
 });
 
 bot.addCommand('#openhype <minutes>', (ctx, args) => {

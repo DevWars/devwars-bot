@@ -32,18 +32,11 @@ class DevWarsWidgetsService {
     }
 
     getBettingState() {
-        const optionTotal = new Map();
-        for (const bet of bot.betting.bets.values()) {
-            const total = optionTotal.get(bet.option) ?? 0;
-            optionTotal.set(bet.option, total + bet.amount);
-        }
-
-        const options = bot.betting.options.map((option) => {
-            return { option, total: optionTotal.get(option) ?? 0 };
-        });
+        // TEMP: Avoid circular import until store is separate from bot
+        const { createOptionSummaries } = require('../commands/betting');
 
         const state = _.pick(bot.betting, ['open', 'startAt', 'endAt']);
-        return { ...state, options };
+        return { ...state, options: createOptionSummaries() };
     }
 
     updateBettingState() {

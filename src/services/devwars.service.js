@@ -2,9 +2,11 @@ const DevWarsApi = require('devwars-api-client');
 const axios = require('axios');
 const config = require('../config');
 
-const axiosClient = axios.create({ baseURL: config.devwars.url });
+const axiosClient = axios.create({
+    baseURL: config.devwars.url,
+    headers: { apikey: config.devwars.apiKey },
+});
 const api = new DevWarsApi(axiosClient);
-api.body = { apiKey: config.devwars.apiKey };
 
 class DevWarsService {
     async getUserCoins(user) {
