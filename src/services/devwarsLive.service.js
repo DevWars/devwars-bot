@@ -51,7 +51,7 @@ class DevWarsLiveService extends EventEmitter {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                cookie: `token=${config.devwarsLive.apiKey}`,
+                apikey: config.devwarsLive.apiKey,
             },
         }, options));
 
