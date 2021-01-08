@@ -13,26 +13,39 @@ async function addBet(twitchUser, amount, option) {
     devwarsWidgetsService.updateBettingState();
 }
 
-async function awardWinners(winningOption) {
-    const winMultiplier = 1 / 2;
+function createOptionSummaries() {
+    const options = bot.betting.options.map((option) => ({
+        name: option,
+        total: Array.from(bot.betting.bets.values())
+            .filter((b) => b.option === option)
+            .reduce((sum, b) => sum + Number(b.amount), 0),
+    }));
 
-    const betters = [];
-    for (const bet of bot.betting.bets.values()) {
-        if (bet.option === winningOption) {
-            const winnings = bet.amount + Math.round(bet.amount * winMultiplier);
-            betters.push({ user: bet.user, amount: winnings });
-            bot.say(`${bet.user.username} won ${coins(winnings)} from their bet!`);
-        } else if (winningOption === 'tie' && bet.option !== 'tie') {
-            const halfAmt = Math.round(bet.amount / 2);
-            betters.push({ user: bet.user, amount: -halfAmt });
-            bot.say(`${bet.user.username} lost only ${coins(halfAmt)} (50% of their bet) since it was a tie`);
-        } else {
-            betters.push({ user: bet.user, amount: -bet.amount });
-            bot.say(`${bet.user.username} lost ${coins(bet.amount)} from their bet BibleThump`);
-        }
+    const total = options.reduce((sum, o) => sum + o.total, 0);
+
+    for (const option of options) {
+        const percentage = option.total / total;
+        option.ratio = 4 * (1 - percentage);
     }
 
-    await devwarsService.updateCoinsForUsers(betters);
+    return options;
+}
+
+function getOptionSummary(option) {
+    return createOptionSummaries().find((r) => r.name === option);
+}
+
+async function finalizeBets(winner) {
+    const result = getOptionSummary(winner);
+    const bets = Array.from(bot.betting.bets.values());
+
+    const betResults = bets.map(({ option, amount }) => ({
+        user: bet.user,
+        amount: option === winner ? (amount * result.ratio) + amount : -amount,
+    }));
+
+    bot.say(`Everyone who betted on ${winner} won x${result.ratio.toFixed(2)} coins! 🎉`);
+    await devwarsService.updateCoinsForUsers(betResults);
 }
 
 async function closeBets() {
@@ -126,7 +139,8 @@ bot.addCommand('!clearbet', async (ctx) => {
 bot.addCommand('@betwinner <option>', async (ctx, args) => {
     const [option] = args;
 
-    if (!validOption(option)) {
+    const validOption = _.includes(bot.betting.options, option);
+    if (!validOption) {
         return bot.say(`<option> must be one from [${bot.betting.options}]`);
     }
 
@@ -134,9 +148,7 @@ bot.addCommand('@betwinner <option>', async (ctx, args) => {
         await closeBets();
     }
 
-    await awardWinners(option);
-
-    return bot.say(`Winners awarded! Everyone who bet [${option}] won coins! devwarsCoin PogChamp`);
+    await finalizeBets(option);
 });
 
 bot.addCommand('@openbets <minutes>', async (ctx, args) => {
@@ -148,3 +160,5 @@ bot.addCommand('@openbets <minutes>', async (ctx, args) => {
 bot.addCommand('@closebets', async () => {
     await closeBets();
 });
+
+module.exports = { createOptionSummaries };
