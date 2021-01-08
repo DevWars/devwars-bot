@@ -41,7 +41,9 @@ async function finalizeBets(winner) {
 
     const betResults = bets.map(({ user, option, amount }) => ({
         user,
-        amount: option === winner ? (amount * result.ratio) + amount : -amount,
+        amount: option === winner
+            ? Math.round(amount * result.ratio) + amount
+            : -amount,
     }));
 
     bot.say(`Everyone who betted on ${winner} won x${result.ratio.toFixed(2)} coins! 🎉`);
