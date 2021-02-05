@@ -32,9 +32,7 @@ class Bot {
 
         this.commands = {};
 
-        this.giveOutAmount = 10;
         setInterval(this.onGiveOut.bind(this), ms('15m'));
-
         setInterval(this.updateIsLiveStatus.bind(this), ms('1m'));
     }
 
@@ -63,19 +61,16 @@ class Bot {
     }
 
     async onGiveOut() {
-        if (devwarsLiveService.game) {
-            const newBase = this.giveOutAmount * 2;
-            let bonus = 0;
+        if (!this.isLive) return;
+        const giveOutAmount = 25;
 
-            if (Math.random() < 0.1) bonus = Math.floor(Math.random() * 1000);
-            await twitchService.giveCoinsToAllViewers(newBase + bonus);
+        let bonus = 0;
+        if (Math.random() < 0.1) bonus = Math.floor(Math.random() * 1000);
 
-            const bonusMsg = bonus ? `and a bonus of ${coins(bonus)}!` : '';
-            return this.say(`Everyone received ${coins(newBase)} ${bonusMsg}`);
-        }
+        await twitchService.giveCoinsToAllViewers(giveOutAmount + bonus);
 
-        await twitchService.giveCoinsToAllViewers(this.giveOutAmount);
-        this.say(`Everyone received ${coins(this.giveOutAmount)}!`);
+        const bonusMsg = bonus ? `and a bonus of ${coins(bonus)}!` : '';
+        return this.say(`Everyone received ${coins(giveOutAmount)} ${bonusMsg}`);
     }
 
     async addCommand(template, action) {
