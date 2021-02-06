@@ -12,9 +12,9 @@ async function voteOnTeam(user, team) {
     const category = stage.meta.category;
 
     const votes = await devwarsLiveService.getVotesForCategory(category);
-    const hasVotedOnTeam = votes.some(vote => (vote.twitchId === user.id && vote.teamId === teamId));
+    const hasVotedOnTeam = votes.some(v => v.twitchId === user.id && v.teamId === teamId);
     if (hasVotedOnTeam) {
-        return bot.say(`${user.username}, you already voted for ${team}`);
+        bot.whisper(`You changed your vote to ${team}`);
     }
 
     const vote = { user, category, team };
