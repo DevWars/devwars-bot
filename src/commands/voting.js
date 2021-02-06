@@ -14,7 +14,7 @@ async function voteOnTeam(user, team) {
     const votes = await devwarsLiveService.getVotesForCategory(category);
     const hasVotedOnTeam = votes.some(v => v.twitchId === user.id && v.teamId === teamId);
     if (hasVotedOnTeam) {
-        bot.whisper(`You changed your vote to ${team}`);
+        bot.say(`${user.username} changed their vote to ${team}`);
     }
 
     const vote = { user, category, team };

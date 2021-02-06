@@ -7,6 +7,10 @@ function helpCommand() {
     bot.say('To see all commands visit https://www.devwars.tv/docs#watching');
 }
 
+function watchCommand() {
+    bot.say('Live Code: https://live.devwars.tv | Blue Site: https://blue.devwars.tv | Red Site: https://red.devwars.tv');
+}
+
 async function setCoins(user, amount) {
     await devwarsService.updateCoinsForUser(user, amount);
     bot.say(`@${user.username} ${amount >= 0 ? 'received' : 'lost'} ${coins(amount)}`);
@@ -15,15 +19,14 @@ async function setCoins(user, amount) {
 bot.addCommand('!help', helpCommand);
 bot.addCommand('!commands', helpCommand);
 
-bot.addAutoCommand('!watch', () => {
-    bot.say('Check out the code and websites! https://live.devwars.tv');
-}, '5m');
+bot.addAutoCommand('!watch', watchCommand, '5m');
+bot.addCommand('!live', watchCommand);
 
 bot.addAutoCommand('!discord', () => {
     bot.say('Join our growing Discord community for developers by heading over to discord.gg/devwars');
 }, '13m');
 
-bot.addAutoCommand( '!follow', () => {
+bot.addAutoCommand('!follow', () => {
     bot.say("Enjoying DevWars? Hit the follow button so you don't miss another stream!");
 }, '21m');
 
