@@ -21,7 +21,7 @@
         "socket.io": "^3.0.4",
         "socket.io-client": "^3.0.4",
         "splitargs": "0.0.7",
-        "tmi.js": "^1.7.1",
+        "tmi.js": "^1.8.3",
         "twitch": "4.0.10"
     },
     "devDependencies": {
