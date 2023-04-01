@@ -138,7 +138,7 @@ bot.addCommand('!clearbet', async (ctx) => {
     return bot.say(`${ctx.user.username} retracted their bet of ${coins(prevBet.amount)}`);
 });
 
-bot.addCommand('@betwinner <option>', async (ctx, args) => {
+bot.addCommand('#betwinner <option>', async (ctx, args) => {
     const [option] = args;
 
     const validOption = _.includes(bot.betting.options, option);
@@ -153,13 +153,13 @@ bot.addCommand('@betwinner <option>', async (ctx, args) => {
     await finalizeBets(option);
 });
 
-bot.addCommand('@openbets <minutes>', async (ctx, args) => {
+bot.addCommand('#openbets <minutes>', async (ctx, args) => {
     const [minutes] = args;
 
     await openBets(minutes);
 });
 
-bot.addCommand('@closebets', async () => {
+bot.addCommand('#closebets', async () => {
     await closeBets();
 });
 
