@@ -1,6 +1,6 @@
-const bot = require('../common/bot');
-const devwarsWidgetsService = require('../services/devwarsWidgets.service');
-const devwarsLiveService = require('../services/devwarsLive.service');
+import bot from '../common/bot';
+import devwarsWidgetsService from '../services/devwarsWidgets.service';
+import devwarsLiveService from '../services/devwarsLive.service';
 
 async function voteOnTeam(user, team) {
     const stage = devwarsLiveService.getStage();

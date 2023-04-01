@@ -1,9 +1,8 @@
 import * as _ from 'lodash';
-import { minutesToMs } from '../utils';
-const bot = require('../common/bot');
-const { validNumber, coins } = require('../utils');
-const devwarsService = require('../services/devwars.service');
-const devwarsWidgetsService = require('../services/devwarsWidgets.service');
+import bot from '../common/bot';
+import devwarsService from '../services/devwars.service';
+import devwarsWidgetsService from '../services/devwarsWidgets.service';
+import { minutesToMs, validNumber, coins } from '../utils';
 
 async function addBet(twitchUser, amount, option) {
     const user = { id: twitchUser.id, username: twitchUser.displayName };

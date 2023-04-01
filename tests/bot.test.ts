@@ -1,7 +1,7 @@
-const Command = require('../src/common/Command');
-const User = require('../src/common/User');
-const config = require('../src/config');
-const { parseArguments } = require("../src/utils");
+import Command from '../src/common/Command';
+import User from '../src/common/User';
+import config from '../src/config';
+import { parseArguments } from '../src/utils';
 
 test('should only execute bot command if user is authorized', async () => {
     const adminCommand = new Command('@command', () => {});

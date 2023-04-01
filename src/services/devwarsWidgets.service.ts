@@ -1,8 +1,8 @@
-const _ = require('lodash');
-const { Server } = require('socket.io');
-const config = require('../config');
-const bot = require('../common/bot');
-const devwarsLiveService = require('./devwarsLive.service');
+import * as _ from 'lodash';
+import { Server } from 'socket.io';
+import config from '../config';
+import bot from '../common/bot';
+import devwarsLiveService from './devwarsLive.service';
 
 class DevWarsWidgetsService {
     server = null;
@@ -61,4 +61,4 @@ class DevWarsWidgetsService {
     }
 }
 
-module.exports = new DevWarsWidgetsService();
+export default new DevWarsWidgetsService();

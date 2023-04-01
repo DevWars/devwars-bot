@@ -1,4 +1,6 @@
-require('dotenv').config();
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 const twitch = {
     channel: process.env.TWITCH_CHANNEL,
@@ -24,7 +26,7 @@ const devwarsWidgets = {
     port: process.env.DEVWARS_WIDGETS_PORT,
 };
 
-module.exports = {
+export default {
     env: process.env.NODE_ENV,
     twitch,
     devwars,

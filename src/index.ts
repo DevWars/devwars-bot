@@ -1,6 +1,6 @@
-const bot = require('./common/bot');
-const devWarsLiveService = require('./services/devwarsLive.service');
-const devWarsWidgetsService = require('./services/devwarsWidgets.service');
+import bot from './bot';
+import devWarsLiveService from './services/devwarsLive.service';
+import devWarsWidgetsService from './services/devWarsWidgets.service';
 
 // Register commands
 require('./commands');

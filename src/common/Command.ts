@@ -1,4 +1,4 @@
-const { getCommandName, getArgumentProps } = require('../utils');
+import { getArgumentProps, getCommandName } from '../utils';
 
 const ROLE_PERMISSIONS = {
     admin: ['@', '#', '$', '!'],
@@ -7,7 +7,7 @@ const ROLE_PERMISSIONS = {
     user: ['!'],
 };
 
-class Command {
+export default class Command {
     constructor(template, action) {
         this.name = getCommandName(template);
         this.template = template;
@@ -23,5 +23,3 @@ class Command {
         return userPermissions.includes(this.symbol);
     }
 }
-
-module.exports = Command;

@@ -1,7 +1,7 @@
-const camelize = require('camelize');
-const config = require('../config');
+import camelize from 'camelize-ts';
+import config from '../config';
 
-class User {
+export default class User {
     constructor(apiUser) {
         const { userId, username, displayName, mod, subscriber } = camelize(apiUser);
 
@@ -21,5 +21,3 @@ class User {
         }
     }
 }
-
-module.exports = User;

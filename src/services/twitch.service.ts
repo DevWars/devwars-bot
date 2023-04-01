@@ -1,17 +1,16 @@
-const fs = require('fs');
-const path = require('path');
-const _ = require('lodash');
+import * as _ from 'lodash';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
+import * as path from 'path';
+import devwarsService from './devwars.service';
 const TwitchClient = require('twitch').default;
-const config = require('../config');
-const devwarsService = require('./devwars.service');
 
 class TwitchService {
     twitchConfigPath = path.join(__dirname, '../../twitch.config.json');
     twitchConfig = _.pick(config.twitch, ['accessToken', 'refreshToken']);
 
     constructor() {
-        if (fs.existsSync(this.twitchConfigPath)) {
-            this.twitchConfig = JSON.parse(fs.readFileSync(this.twitchConfigPath));
+        if (existsSync(this.twitchConfigPath)) {
+            this.twitchConfig = JSON.parse(readFileSync(this.twitchConfigPath, 'utf8'));
         }
 
         const refreshConfig = {
@@ -31,7 +30,7 @@ class TwitchService {
     updateTwitchConfig(twitchConfig) {
         this.twitchConfig = _.pick(twitchConfig, ['accessToken', 'refreshToken']);
         // Update the local configuration file with the related data.
-        fs.writeFileSync(this.twitchConfigPath, JSON.stringify(this.twitchConfig, null, 2));
+        writeFileSync(this.twitchConfigPath, JSON.stringify(this.twitchConfig, null, 2));
     }
 
     async giveCoinsToAllViewers(amount) {
@@ -67,4 +66,4 @@ class TwitchService {
     }
 }
 
-module.exports = new TwitchService();
+export default new TwitchService();

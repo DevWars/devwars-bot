@@ -1,6 +1,6 @@
-const bot = require('../common/bot');
-const devwarsService = require('../services/devwars.service');
-const { validNumber, coins } = require('../utils');
+import bot from '../common/bot';
+import devwarsService from '../services/devwars.service';
+import { validNumber, coins } from '../utils';
 
 const hypeEmote = '🚃 ';
 

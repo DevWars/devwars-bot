@@ -1,6 +1,7 @@
-const DevWarsApi = require('devwars-api-client');
-const axios = require('axios');
-const config = require('../config');
+ // tslint:disable-line:import-name no-implicit-dependencies no-submodule-imports no-internal-module
+import DevWarsApi from 'devwars-api-client'; // tslint:disable-line:import-name no-implicit-dependencies no-submodule-imports no-internal-module
+import axios from 'axios';
+import config from '../config';
 
 const axiosClient = axios.create({
     baseURL: config.devwars.url,
@@ -28,4 +29,4 @@ class DevWarsService {
     }
 }
 
-module.exports = new DevWarsService();
+export default new DevWarsService();

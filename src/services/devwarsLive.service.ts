@@ -1,8 +1,8 @@
-const { EventEmitter } = require('events');
-const _ = require('lodash');
-const io = require('socket.io-client');
-const fetch = require('node-fetch');
-const config = require('../config');
+import * as _ from 'lodash';
+import { EventEmitter } from 'events';
+import io from 'socket.io-client';
+import fetch from 'node-fetch';
+import config from '../config';
 
 class DevWarsLiveService extends EventEmitter {
     game = null;
@@ -94,4 +94,4 @@ class DevWarsLiveService extends EventEmitter {
     }
 }
 
-module.exports = new DevWarsLiveService();
+export default new DevWarsLiveService();

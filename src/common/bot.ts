@@ -1,13 +1,12 @@
 import { minutesToMs } from "../utils";
 import * as tmi from 'tmi.js';
-const config = require('../config');
-const Command = require('./Command');
-const User = require('./User');
-const twitchService = require('../services/twitch.service');
-const devwarsLiveService = require('../services/devwarsLive.service');
-const { parseArguments, checkArgumentLength, isCommand, getCommandName, coins } = require('../utils');
+import twitchService from '../services/twitch.service';
+import config from '../config';
+import { parseArguments, checkArgumentLength, isCommand, getCommandName, coins } from '../utils';
+import Command from './Command';
+import User from './User';
 
-class Bot {
+export default class Bot {
     constructor() {
         this.client = null;
         this.channel = config.twitch.channel;
@@ -128,5 +127,3 @@ class Bot {
         await this.updateIsLiveStatus();
     }
 }
-
-module.exports = new Bot(config);
