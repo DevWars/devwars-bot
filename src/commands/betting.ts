@@ -1,5 +1,5 @@
-const _ = require('lodash');
-const ms = require('ms');
+import * as _ from 'lodash';
+import { minutesToMs } from '../utils';
 const bot = require('../common/bot');
 const { validNumber, coins } = require('../utils');
 const devwarsService = require('../services/devwars.service');
@@ -75,7 +75,7 @@ async function openBets(minutes) {
         return bot.say('<minutes> must be a number');
     }
 
-    const duration = ms(minutes + 'm');
+    const duration = minutesToMs(minutes);
     bot.betting._timeout = setTimeout(closeBets, duration);
     bot.betting.open = true;
     bot.betting.startAt = Date.now();

@@ -1,7 +1,7 @@
 const Command = require('../src/common/Command');
 const User = require('../src/common/User');
 const config = require('../src/config');
-const { parseArguments } = require('../src/utils');
+const { parseArguments } = require("../src/utils");
 
 test('should only execute bot command if user is authorized', async () => {
     const adminCommand = new Command('@command', () => {});

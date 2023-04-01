@@ -1,19 +1,19 @@
 const splitargs = require('splitargs');
 
-function isCommand(message) {
+export function isCommand(message) {
     if (typeof message !== 'string') return false;
 
     return message.trim().charAt(0) === '!';
 }
 
-function getCommandName(message) {
+export function getCommandName(message) {
     const firstWord = message.trim().split(' ')[0];
     const command = firstWord.toLowerCase().substring(1);
 
     return command;
 }
 
-function parseArguments(message) {
+export function parseArguments(message) {
     let args = message.trim().split(' ').slice(1).join(' ');
 
     if (args.match(/\|/)) {
@@ -37,7 +37,7 @@ function parseArguments(message) {
     });
 }
 
-function checkArgumentLength(inputArgs, commandArgs) {
+export function checkArgumentLength(inputArgs, commandArgs) {
     const unlimitedArgs = commandArgs.find(arg => arg.includes('...'));
 
     if (!unlimitedArgs && inputArgs.length > commandArgs.length) {
@@ -51,26 +51,20 @@ function checkArgumentLength(inputArgs, commandArgs) {
     return false;
 }
 
-function getArgumentProps(commandTemplate) {
+export function getArgumentProps(commandTemplate) {
     const argArr = commandTemplate.split(' ').splice(1);
     return argArr.map(arg => arg.replace(/[<>]/g, ''));
 }
 
-function validNumber(number) {
+export function validNumber(number) {
     return (!Number.isNaN(number) && number % 1 === 0 && number >= 0);
 }
 
-function coins(number) {
+export function coins(number: number) {
     const formattedCoins = number.toLocaleString();
     return `devwarsCoin ${formattedCoins}`;
 }
 
-module.exports = {
-    isCommand,
-    getCommandName,
-    parseArguments,
-    checkArgumentLength,
-    getArgumentProps,
-    validNumber,
-    coins,
-};
+export function minutesToMs(minutes: number) {
+    return minutes * 60 * 1000;
+}

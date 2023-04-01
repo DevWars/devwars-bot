@@ -1,5 +1,5 @@
-const tmi = require('tmi.js');
-const ms = require('ms');
+import { minutesToMs } from "../utils";
+import * as tmi from 'tmi.js';
 const config = require('../config');
 const Command = require('./Command');
 const User = require('./User');
@@ -32,8 +32,8 @@ class Bot {
 
         this.commands = {};
 
-        setInterval(this.onGiveOut.bind(this), ms('15m'));
-        setInterval(this.updateIsLiveStatus.bind(this), ms('1m'));
+        setInterval(this.onGiveOut.bind(this), minutesToMs(15));
+        setInterval(this.updateIsLiveStatus.bind(this), minutesToMs(1));
     }
 
     async onChat(channel, apiUser, message, self) {
@@ -84,7 +84,7 @@ class Bot {
 
         setInterval(() => {
             if (this.isLive) command.action();
-        }, ms(interval));
+        }, minutesToMs(interval));
     }
 
     async selfCommand(command) {
@@ -112,7 +112,6 @@ class Bot {
     }
 
     async connect() {
-        // eslint-disable-next-line
         this.client = new tmi.client({
             options: { debug: true },
             connection: { reconnect: true },

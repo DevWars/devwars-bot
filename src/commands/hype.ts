@@ -1,4 +1,3 @@
-const ms = require('ms');
 const bot = require('../common/bot');
 const devwarsService = require('../services/devwars.service');
 const { validNumber, coins } = require('../utils');
@@ -54,8 +53,8 @@ async function closeHype() {
     bot.hype.hypes = [];
 }
 
-function openHype(minutes) {
-    const formatDuration = ms(ms(`${minutes}m`), { long: true });
+function openHype(minutes: number) {
+    const formatDuration = `${minutes} minute${minutes === 1 ? '' : 's'}}`;
     let duration = 1000 * 60 * minutes;
     bot.hype.open = true;
 
