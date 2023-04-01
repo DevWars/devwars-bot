@@ -1,4 +1,4 @@
-import bot from './bot';
+import bot from './common/bot';
 import devWarsLiveService from './services/devwarsLive.service';
 import devWarsWidgetsService from './services/devWarsWidgets.service';
 

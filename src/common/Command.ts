@@ -1,6 +1,7 @@
 import { getArgumentProps, getCommandName } from '../utils';
+import User, { UserRole } from './User';
 
-const ROLE_PERMISSIONS = {
+const ROLE_PERMISSIONS: { [role in UserRole]: string[] } = {
     admin: ['@', '#', '$', '!'],
     mod: ['#', '$', '!'],
     subscriber: ['$', '!'],
@@ -8,7 +9,13 @@ const ROLE_PERMISSIONS = {
 };
 
 export default class Command {
-    constructor(template, action) {
+    name: string;
+    template: string;
+    symbol: string;
+    args: string[];
+    action: Function;
+
+    constructor(template: string, action: Function) {
         this.name = getCommandName(template);
         this.template = template;
         this.symbol = template.charAt(0);
@@ -16,7 +23,7 @@ export default class Command {
         this.action = action;
     }
 
-    userHasPermission(user) {
+    userHasPermission(user: User) {
         const userPermissions = ROLE_PERMISSIONS[user.role];
         if (!userPermissions) return false;
 

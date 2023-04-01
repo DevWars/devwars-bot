@@ -7,30 +7,26 @@ import Command from './Command';
 import User from './User';
 
 export default class Bot {
+    twitchClient = null;
+    channel = config.twitch.channel;
+    isLive = false;
+    symbols: string[] = ['!', '$', '#', '@'];
+    betting = {
+        _timeout: null,
+        open: false,
+        options: ['blue', 'red', 'tie'],
+        bets: new Map(),
+        startAt: null,
+        endAt: null,
+    };
+    hype = {
+        _timeout: null,
+        open: false,
+        hypes: [],
+    };
+    commands: Command[] = [];
+
     constructor() {
-        this.client = null;
-        this.channel = config.twitch.channel;
-        this.isLive = false;
-
-        this.symbols = ['!', '$', '#', '@'];
-
-        this.betting = {
-            _timeout: null,
-            open: false,
-            options: ['blue', 'red', 'tie'],
-            bets: new Map(),
-            startAt: null,
-            endAt: null,
-        };
-
-        this.hype = {
-            _timeout: null,
-            open: false,
-            hypes: [],
-        };
-
-        this.commands = {};
-
         setInterval(this.onGiveOut.bind(this), minutesToMs(15));
         setInterval(this.updateIsLiveStatus.bind(this), minutesToMs(1));
     }
@@ -72,7 +68,7 @@ export default class Bot {
         return this.say(`Everyone received ${coins(giveOutAmount)} ${bonusMsg}`);
     }
 
-    async addCommand(template, action) {
+    async addCommand(template: string, action: Function) {
         const command = new Command(template, action);
         this.commands[command.name] = command;
     }
@@ -86,7 +82,7 @@ export default class Bot {
         }, minutesToMs(interval));
     }
 
-    async selfCommand(command) {
+    async selfCommand(command: Command) {
         const commandName = getCommandName(command);
         const args = parseArguments(command);
 
@@ -98,20 +94,20 @@ export default class Bot {
         this.isLive = Boolean(await twitchService.checkStreamStatus());
     }
 
-    action(message) {
-        this.client.action(this.channel, message);
+    action(message: string) {
+        this.twitchClient.action(this.channel, message);
     }
 
-    say(message) {
-        this.client.say(this.channel, message);
+    say(message: string) {
+        this.twitchClient.say(this.channel, message);
     }
 
-    whisper(user, message) {
-        this.client.whisper(user.username, message);
+    whisper(user: User, message: string) {
+        this.twitchClient.whisper(user.username, message);
     }
 
     async connect() {
-        this.client = new tmi.client({
+        this.twitchClient = new tmi.client({
             options: { debug: true },
             connection: { reconnect: true },
             identity: {
@@ -121,9 +117,9 @@ export default class Bot {
             channels: [`#${config.twitch.channel}`],
         });
 
-        this.client.on('chat', this.onChat.bind(this));
+        this.twitchClient.on('chat', this.onChat.bind(this));
 
-        await this.client.connect();
+        await this.twitchClient.connect();
         await this.updateIsLiveStatus();
     }
 }
