@@ -1,5 +1,4 @@
- // tslint:disable-line:import-name no-implicit-dependencies no-submodule-imports no-internal-module
-import DevWarsApi from 'devwars-api-client'; // tslint:disable-line:import-name no-implicit-dependencies no-submodule-imports no-internal-module
+const DevWarsApi = require('devwars-api-client');
 import axios from 'axios';
 import config from '../config';
 
