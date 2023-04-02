@@ -24,6 +24,13 @@ interface BotHype {
     hypes: string[];
 };
 
+type ChatEventHandler = (
+    channel: string,
+    userstate: tmi.ChatUserstate,
+    message: string,
+    self: boolean
+  ) => void | Promise<void>;
+
 class Bot {
     twitchClient: tmi.Client;
     channel = config.twitch.channel;
@@ -49,14 +56,13 @@ class Bot {
         setInterval(this.updateIsLiveStatus.bind(this), minutesToMs(1));
     }
 
-    async onChat(event: Parameters<tmi.Events['chat']>) {
-        const [_, apiUser, message, self] = event;
+    onChat: ChatEventHandler = async (_, userstate, message, self) => {
         if (self || !isCommand(message)) return;
 
         const command = this.commands[getCommandName(message)];
         if (!command) return;
 
-        const user = new User(apiUser);
+        const user = new User(userstate);
         if (!command.userHasPermission(user)) return;
 
         const args = parseArguments(message);
@@ -124,8 +130,7 @@ class Bot {
             channels: [`#${config.twitch.channel}`],
         });
 
-        // TODO: Fix any type casting
-        this.twitchClient.on('chat', this.onChat.bind(this) as any);
+        this.twitchClient.on('chat', this.onChat);
 
         await this.twitchClient.connect();
         await this.updateIsLiveStatus();
