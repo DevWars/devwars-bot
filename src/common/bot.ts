@@ -1,18 +1,21 @@
 import { minutesToMs } from "../utils";
 import * as tmi from 'tmi.js';
-import twitchService from '../services/twitch.service';
+import twitchService, { TwitchUser } from '../services/twitch.service';
 import config from '../config';
 import { parseArguments, checkArgumentLength, isCommand, getCommandName, coins } from '../utils';
+import { Bet } from "../commands/betting";
 import Command, { CommandAction } from './Command';
 import User from './User';
+
+type Timestamp = number; // Unix timestamp
 
 type BotBetting = {
     _timeout: NodeJS.Timeout | null;
     open: boolean;
     options: string[];
-    bets: Map<string, number>;
-    startAt: number | null;
-    endAt: number | null;
+    bets: Map<TwitchUser['id'], Bet>;
+    startAt: Timestamp | null;
+    endAt: Timestamp | null;
 };
 
 type BotHype = {

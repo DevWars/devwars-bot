@@ -10,8 +10,8 @@ interface TwitchConfig {
     refreshToken: string;
 }
 
-interface TwitchUser {
-    id: string;
+export interface TwitchUser {
+    id: number;
     username: string;
 }
 
@@ -70,7 +70,7 @@ class TwitchService {
         });
 
         const results: HelixUser[] = _.flatten(await Promise.all(requests));
-        return results.map((user) => ({ id: user.id, username: user.name }));
+        return results.map((user) => ({ id: Number(user.id), username: user.name }));
     }
 
     async getUserByUsername(username: string): Promise<TwitchUser | undefined> {

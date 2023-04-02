@@ -3,54 +3,76 @@ import bot from '../common/bot';
 import devwarsService from '../services/devwars.service';
 import devwarsWidgetsService from '../services/devwarsWidgets.service';
 import { minutesToMs, isValidNumber, coins } from '../utils';
+import User from '../common/User';
+import { TwitchUser } from '../services/twitch.service';
 
-async function addBet(twitchUser, amount, option) {
-    const user = { id: twitchUser.id, username: twitchUser.displayName };
-    const bet = { user, amount, option };
+export interface Bet {
+    user: TwitchUser;
+    amount: number;
+    option: string;
+}
+
+interface OptionSummary {
+    name: string;
+    total: number;
+    ratio: number;
+}
+
+async function addBet(user: User, amount: number, option: string): Promise<void> {
+    const twitchUser = { id: user.id, username: user.displayName };
+    const bet = { user: twitchUser, amount, option };
+
     bot.betting.bets.set(user.id, bet);
     devwarsWidgetsService.broadcastBet(bet);
     devwarsWidgetsService.updateBettingState();
 }
 
-function createOptionSummaries() {
-    const options = bot.betting.options.map((option) => ({
-        name: option,
-        total: Array.from(bot.betting.bets.values())
-            .filter((b) => b.option === option)
-            .reduce((sum, b) => sum + Number(b.amount), 0),
-    }));
+export function createOptionSummaries(): OptionSummary[] {
+    const bets = Array.from(bot.betting.bets.values());
+    const total = bets.reduce((sum, bet) => sum + Number(bet.amount), 0);
 
-    const total = options.reduce((sum, o) => sum + o.total, 0);
+    return bot.betting.options.map((option) => {
+        const optionTotal = bets
+            .filter((bet) => bet.option === option)
+            .reduce((sum, bet) => sum + Number(bet.amount), 0);
+        const percentage = optionTotal / total;
+        const ratio = 4 * (1 - percentage);
 
-    for (const option of options) {
-        const percentage = option.total / total;
-        option.ratio = 4 * (1 - percentage);
-    }
-
-    return options;
+        return {
+            name: option,
+            total: optionTotal,
+            ratio,
+        };
+    });
 }
 
-function getOptionSummary(option) {
+function getOptionSummary(option: string): OptionSummary | undefined {
     return createOptionSummaries().find((r) => r.name === option);
 }
 
-async function finalizeBets(winner) {
-    const result = getOptionSummary(winner);
+async function finalizeBets(winner: string): Promise<void> {
+    const optionSummary = getOptionSummary(winner);
+    if (!optionSummary) {
+        return bot.say(`No one betted on ${winner}`);
+    }
+
     const bets = Array.from(bot.betting.bets.values());
 
     const betResults = bets.map(({ user, option, amount }) => ({
         user,
         amount: option === winner
-            ? Math.round(amount * result.ratio) + amount
+            ? Math.round(amount * optionSummary.ratio ?? 1) + amount
             : -amount,
     }));
 
-    bot.say(`Everyone who betted on ${winner} won x${result.ratio.toFixed(2)} coins! 🎉`);
+    bot.say(`Everyone who betted on ${winner} won x${optionSummary.ratio.toFixed(2)} coins! 🎉`);
     await devwarsService.updateCoinsForUsers(betResults);
 }
 
-async function closeBets() {
-    clearTimeout(bot.betting._timeout);
+async function closeBets(): Promise<void> {
+    if (bot.betting._timeout) {
+        clearTimeout(bot.betting._timeout);
+    }
 
     if (!bot.betting.open) {
         return bot.say('Betting is already closed');
@@ -63,7 +85,7 @@ async function closeBets() {
     bot.say('Betting is now closed');
 }
 
-async function openBets(minutes) {
+async function openBets(minutes: number): Promise<void> {
     bot.betting.bets = new Map();
 
     if (bot.betting.open) {
@@ -161,5 +183,3 @@ bot.addCommand('#openbets <minutes>', async (ctx, args) => {
 bot.addCommand('#closebets', async () => {
     await closeBets();
 });
-
-module.exports = { createOptionSummaries };
