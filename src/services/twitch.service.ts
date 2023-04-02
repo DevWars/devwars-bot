@@ -15,7 +15,7 @@ export interface TwitchUser {
     username: string;
 }
 
-interface CoinUpdate {
+export interface UserCoinUpdate {
     user: TwitchUser;
     amount: number;
 }
@@ -54,7 +54,7 @@ class TwitchService {
         const usernames = await this.getCurrentViewers();
         const twitchUsers = await this.getUsersByUsernames(usernames);
 
-        const updates: CoinUpdate[] = twitchUsers.map((user) => ({ user, amount }));
+        const updates: UserCoinUpdate[] = twitchUsers.map((user) => ({ user, amount }));
         return devwarsService.updateCoinsForUsers(updates);
     }
 

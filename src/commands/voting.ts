@@ -1,8 +1,9 @@
 import bot from '../common/bot';
 import devwarsWidgetsService from '../services/devwarsWidgets.service';
 import devwarsLiveService from '../services/devwarsLive.service';
+import { TwitchUser } from '../services/twitch.service';
 
-async function voteOnTeam(user, team) {
+async function voteOnTeam(user: TwitchUser, team: string) {
     const stage = devwarsLiveService.getStage();
     if (!devwarsLiveService.isVotingOpen()) {
         return bot.say('Voting is currently closed');
