@@ -8,7 +8,7 @@ import { Hype } from "../commands/hype";
 import Command, { AutoCommand, AutoCommandAction, CommandAction } from './Command';
 import User from './User';
 
-type Timestamp = number; // Unix timestamp
+export type Timestamp = number; // Unix timestamp
 
 interface BotBetting {
     _timeout: NodeJS.Timeout | null;
