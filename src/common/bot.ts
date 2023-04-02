@@ -10,7 +10,7 @@ import User from './User';
 
 export type Timestamp = number; // Unix timestamp
 
-interface BotBetting {
+export interface BettingState {
     _timeout: NodeJS.Timeout | null;
     open: boolean;
     options: string[];
@@ -19,7 +19,7 @@ interface BotBetting {
     endAt: Timestamp | null;
 };
 
-interface BotHype {
+interface HypeState {
     _timeout: NodeJS.Timeout | null;
     open: boolean;
     hypes: Hype[];
@@ -37,7 +37,7 @@ class Bot {
     channel = config.twitch.channel;
     isLive = false;
     symbols: string[] = ['!', '$', '#', '@'];
-    betting: BotBetting = {
+    betting: BettingState = {
         _timeout: null,
         open: false,
         options: ['blue', 'red', 'tie'],
@@ -45,7 +45,7 @@ class Bot {
         startAt: null,
         endAt: null,
     };
-    hype: BotHype = {
+    hype: HypeState = {
         _timeout: null,
         open: false,
         hypes: [],

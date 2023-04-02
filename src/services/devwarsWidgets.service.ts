@@ -1,16 +1,22 @@
 import * as _ from 'lodash';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import config from '../config';
-import bot from '../common/bot';
+import bot, { BettingState } from '../common/bot';
 import devwarsLiveService from './devwarsLive.service';
+import { Vote } from '../commands/voting';
+import { Bet } from '../commands/betting';
+
+interface VotingState {
+    open: boolean;
+}
 
 class DevWarsWidgetsService {
-    server = null;
-    _stage = null;
+    server: Server | null = null;
+    private _stage: string | null = null;
 
     init() {
         this.server = new Server(config.devwarsWidgets.port, { transports: ['websocket'] });
-        this.server.on('connection', this.onConnection.bind(this));
+        this.server.on('connection', (socket: Socket) => this.onConnection(socket));
 
         devwarsLiveService.on('game.state', (game) => {
             const stage = game?.stages[game.stageIndex].type || null;
@@ -21,7 +27,7 @@ class DevWarsWidgetsService {
         });
     }
 
-    onConnection(socket) {
+    onConnection(socket: Socket) {
         socket.on('betting.state', () => {
             socket.emit('betting.state', this.getBettingState());
         });
@@ -31,7 +37,7 @@ class DevWarsWidgetsService {
         });
     }
 
-    getBettingState() {
+    getBettingState(): Pick<BettingState, 'open' | 'startAt' | 'endAt' | 'options'> {
         // TEMP: Avoid circular import until store is separate from bot
         const { createOptionSummaries } = require('../commands/betting');
 
@@ -40,24 +46,24 @@ class DevWarsWidgetsService {
     }
 
     updateBettingState() {
-        this.server.emit('betting.state', this.getBettingState());
+        this.server?.emit('betting.state', this.getBettingState());
     }
 
-    broadcastBet(bet) {
-        this.server.emit('betting.bet', bet);
+    broadcastBet(bet: Bet) {
+        this.server?.emit('betting.bet', bet);
     }
 
-    getVotingState() {
+    getVotingState(): VotingState {
         return { open: this._stage === 'vote' };
     }
 
     updateVotingState() {
-        this.server.emit('voting.state', this.getVotingState());
+        this.server?.emit('voting.state', this.getVotingState());
     }
 
-    broadcastVote(vote) {
+    broadcastVote(vote: Vote) {
         const user = { id: vote.user.id, username: vote.user.displayName };
-        this.server.emit('voting.vote', { ...vote, user });
+        this.server?.emit('voting.vote', { ...vote, user });
     }
 }
 
