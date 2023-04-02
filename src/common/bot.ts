@@ -4,12 +4,12 @@ import twitchService, { TwitchUser } from '../services/twitch.service';
 import config from '../config';
 import { parseArguments, checkArgumentLength, isCommand, getCommandName, coins } from '../utils';
 import { Bet } from "../commands/betting";
-import Command, { CommandAction } from './Command';
+import Command, { AutoCommand, AutoCommandAction, CommandAction } from './Command';
 import User from './User';
 
 type Timestamp = number; // Unix timestamp
 
-type BotBetting = {
+interface BotBetting {
     _timeout: NodeJS.Timeout | null;
     open: boolean;
     options: string[];
@@ -18,7 +18,7 @@ type BotBetting = {
     endAt: Timestamp | null;
 };
 
-type BotHype = {
+interface BotHype {
     _timeout: NodeJS.Timeout | null;
     open: boolean;
     hypes: string[];
@@ -42,7 +42,7 @@ class Bot {
         open: false,
         hypes: [],
     };
-    commands: Command[] = [];
+    commands: Record<Command['name'], Command> = {};
 
     constructor() {
         setInterval(this.onGiveOut.bind(this), minutesToMs(15));
@@ -92,28 +92,16 @@ class Bot {
         this.commands[command.name] = command;
     }
 
-    async addAutoCommand(template: string, action: CommandAction, intervalInMinutes: number) {
-        const command = new Command(template, action);
+    async addAutoCommand(template: string, action: AutoCommandAction, intervalInMinutes: number) {
+        const command = new AutoCommand(template, action, intervalInMinutes);
         this.commands[command.name] = command;
-
-        setInterval(() => {
-            if (this.isLive) command.action();
-        }, minutesToMs(intervalInMinutes));
-    }
-
-    async selfCommand(command: Command) {
-        const commandName = getCommandName(command);
-        const args = parseArguments(command);
-
-        // Can't accept commands with ctx
-        this.commands[commandName].action({}, args);
     }
 
     async updateIsLiveStatus() {
         this.isLive = Boolean(await twitchService.checkStreamStatus());
     }
 
-    action(message: string) {
+    action(message: string): void {
         this.twitchClient.action(this.channel, message);
     }
 

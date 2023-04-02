@@ -18,7 +18,7 @@ interface OptionSummary {
     ratio: number;
 }
 
-async function addBet(user: User, amount: number, option: string): Promise<void> {
+async function addBet(user: User, amount: number, option: string) {
     const twitchUser = { id: user.id, username: user.displayName };
     const bet = { user: twitchUser, amount, option };
 
@@ -50,7 +50,7 @@ function getOptionSummary(option: string): OptionSummary | undefined {
     return createOptionSummaries().find((r) => r.name === option);
 }
 
-async function finalizeBets(winner: string): Promise<void> {
+async function finalizeBets(winner: string) {
     const optionSummary = getOptionSummary(winner);
     if (!optionSummary) {
         return bot.say(`No one betted on ${winner}`);
@@ -69,7 +69,7 @@ async function finalizeBets(winner: string): Promise<void> {
     await devwarsService.updateCoinsForUsers(betResults);
 }
 
-async function closeBets(): Promise<void> {
+async function closeBets() {
     if (bot.betting._timeout) {
         clearTimeout(bot.betting._timeout);
     }
@@ -85,7 +85,7 @@ async function closeBets(): Promise<void> {
     bot.say('Betting is now closed');
 }
 
-async function openBets(minutes: number): Promise<void> {
+async function openBets(minutes: number) {
     bot.betting.bets = new Map();
 
     if (bot.betting.open) {

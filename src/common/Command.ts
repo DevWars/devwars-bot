@@ -1,7 +1,9 @@
-import { getArgumentProps, getCommandName } from '../utils';
+import { getArgumentProps, getCommandName, minutesToMs } from '../utils';
 import User, { UserRole } from './User';
+import bot from './bot';
 
 export type CommandAction = (ctx: { user: User; message: string }, args: string[]) => void;
+export type AutoCommandAction = () => void | Promise<void>;
 
 const ROLE_PERMISSIONS: { [role in UserRole]: string[] } = {
     admin: ['@', '#', '$', '!'],
@@ -32,3 +34,15 @@ export default class Command {
         return userPermissions.includes(this.symbol);
     }
 }
+
+export class AutoCommand extends Command {
+    constructor(template: string, action: AutoCommandAction, intervalInMinutes: number) {
+      super(template, action);
+
+      setInterval(() => {
+        if (bot.isLive) {
+            action();
+        }
+      }, minutesToMs(intervalInMinutes));
+    }
+  }
