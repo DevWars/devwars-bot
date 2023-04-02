@@ -1,12 +1,23 @@
 import bot from '../common/bot';
 import devwarsWidgetsService from '../services/devwarsWidgets.service';
 import devwarsLiveService from '../services/devwarsLive.service';
-import { TwitchUser } from '../services/twitch.service';
+import User from '../common/User';
 
-async function voteOnTeam(user: TwitchUser, team: string) {
-    const stage = devwarsLiveService.getStage();
-    if (!devwarsLiveService.isVotingOpen()) {
+export interface Vote {
+    user: User;
+    category: string;
+    team: string;
+}
+
+async function voteOnTeam(user: User, team: string) {
+    const isVotingOpen = devwarsLiveService.isVotingOpen();
+    if (!isVotingOpen) {
         return bot.say('Voting is currently closed');
+    }
+
+    const stage = devwarsLiveService.getStage();
+    if (!stage) {
+        return bot.say('No stage to vote on');
     }
 
     const teamId = devwarsLiveService.teamIdFromName(team);
@@ -18,7 +29,7 @@ async function voteOnTeam(user: TwitchUser, team: string) {
         bot.say(`${user.username} changed their vote to ${team}`);
     }
 
-    const vote = { user, category, team };
+    const vote: Vote = { user, category, team };
     await devwarsWidgetsService.broadcastVote(vote)
     await devwarsLiveService.onVote(vote);
 }

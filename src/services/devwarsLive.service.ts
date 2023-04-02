@@ -3,29 +3,36 @@ import { EventEmitter } from 'events';
 import io, { Socket } from 'socket.io-client';
 import fetch from 'node-fetch';
 import { Timestamp } from '../common/bot';
-import { TwitchUser } from './twitch.service';
 import config from '../config';
+import { Vote } from '../commands/voting';
 
 interface Game {
-    stages: Stage[];
+    stages: LiveStage[];
     stageIndex: number;
     stageEndAt: Timestamp;
-    teams: Team[];
+    teams: LiveTeam[];
 }
 
-interface Stage {
+interface LiveStage {
     type: string;
+    meta: {
+        category: string;
+    };
 }
 
-interface Team {
-    id: string;
+interface LiveTeam {
+    id: number;
     name: string;
 }
 
-interface Vote {
+interface LiveVote {
+    id: number;
     category: string;
-    team: string;
-    user: TwitchUser;
+    twitchId: number;
+    twitchUsername: string;
+    game: Game;
+    teamId: number;
+    team: LiveTeam;
 }
 
 class DevWarsLiveService extends EventEmitter {
@@ -71,11 +78,11 @@ class DevWarsLiveService extends EventEmitter {
         return res.json() as Promise<T>;
     }
 
-    getStage(): Stage | null {
+    getStage(): LiveStage | null {
         return this.game?.stages[this.game.stageIndex] ?? null;
     }
 
-    teamIdFromName(teamName: string): string | null {
+    teamIdFromName(teamName: string): number | null {
         if (!this.game) return null;
 
         const team = this.game.teams.find((team) => team.name === teamName);
@@ -91,16 +98,16 @@ class DevWarsLiveService extends EventEmitter {
         return stage?.type === 'vote' && isElapsed;
     }
 
-    async getVotes(): Promise<Vote[]> {
+    async getVotes(): Promise<LiveVote[]> {
         try {
-            return this.apiFetch<Vote[]>('votes');
+            return this.apiFetch<LiveVote[]>('votes');
         } catch (e) {
             console.log(e);
             return [];
         }
     }
 
-    async getVotesForCategory(category: string): Promise<Vote[]> {
+    async getVotesForCategory(category: string): Promise<LiveVote[]> {
         const votes = await this.getVotes();
         return votes.filter((vote) => vote.category === category);
     }
