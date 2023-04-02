@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import bot from '../common/bot';
 import devwarsService from '../services/devwars.service';
 import devwarsWidgetsService from '../services/devwarsWidgets.service';
-import { minutesToMs, validNumber, coins } from '../utils';
+import { minutesToMs, isValidNumber, coins } from '../utils';
 
 async function addBet(twitchUser, amount, option) {
     const user = { id: twitchUser.id, username: twitchUser.displayName };
@@ -70,7 +70,7 @@ async function openBets(minutes) {
         return bot.say('Betting is already open');
     }
 
-    if (!validNumber(minutes)) {
+    if (!isValidNumber(minutes)) {
         return bot.say('<minutes> must be a number');
     }
 
@@ -94,7 +94,7 @@ bot.addCommand('!bet <amount> <option>', async (ctx, args) => {
         return bot.say('Betting is closed');
     }
 
-    if (!validNumber(amount)) {
+    if (!isValidNumber(amount)) {
         return bot.whisper(ctx.user, '<amount> must be a number');
     }
 

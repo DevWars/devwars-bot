@@ -1,6 +1,8 @@
 import { getArgumentProps, getCommandName } from '../utils';
 import User, { UserRole } from './User';
 
+export type CommandAction = (ctx: { user: User; message: string }, args: string[]) => void;
+
 const ROLE_PERMISSIONS: { [role in UserRole]: string[] } = {
     admin: ['@', '#', '$', '!'],
     mod: ['#', '$', '!'],
@@ -13,9 +15,9 @@ export default class Command {
     template: string;
     symbol: string;
     args: string[];
-    action: Function;
+    action: CommandAction;
 
-    constructor(template: string, action: Function) {
+    constructor(template: string, action: CommandAction) {
         this.name = getCommandName(template);
         this.template = template;
         this.symbol = template.charAt(0);

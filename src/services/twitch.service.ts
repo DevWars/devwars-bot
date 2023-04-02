@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
 import devwarsService from './devwars.service';
+import config from '../config';
 const TwitchClient = require('twitch').default;
 
 class TwitchService {
@@ -33,7 +34,7 @@ class TwitchService {
         writeFileSync(this.twitchConfigPath, JSON.stringify(this.twitchConfig, null, 2));
     }
 
-    async giveCoinsToAllViewers(amount) {
+    async giveCoinsToAllViewers(amount: number) {
         const usernames = await this.getCurrentViewers();
         const twitchUsers = await this.getUsersByUsernames(usernames);
 
@@ -47,7 +48,7 @@ class TwitchService {
     }
 
     // Gathers all users from twitch in chunks of 100.
-    async getUsersByUsernames(usernames) {
+    async getUsersByUsernames(usernames: string[]) {
         const requests = _.chunk(usernames, 100).map((users) => {
             return this.twitchClient.helix.users.getUsersByNames(users);
         });
@@ -56,7 +57,7 @@ class TwitchService {
         return results.map((user) => ({ id: user.id, username: user.name }));
     }
 
-    async getUserByUsername(username) {
+    async getUserByUsername(username: string) {
         const [user] = await this.getUsersByUsernames([username]);
         return user;
     }

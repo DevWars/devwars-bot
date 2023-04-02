@@ -1,7 +1,8 @@
 import bot from '../common/bot';
+import User from '../common/User';
 import devwarsService from '../services/devwars.service';
 import twitchService from '../services/twitch.service';
-import { validNumber, coins } from '../utils';
+import { isValidNumber, coins } from '../utils';
 
 function helpCommand() {
     bot.say('To see all commands visit https://www.devwars.tv/docs#watching');
@@ -11,7 +12,7 @@ function watchCommand() {
     bot.say('Live Code: https://live.devwars.tv | Blue Site: https://blue.devwars.tv | Red Site: https://red.devwars.tv');
 }
 
-async function setCoins(user, amount) {
+async function setCoins(user: User, amount: number) {
     await devwarsService.updateCoinsForUser(user, amount);
     bot.say(`@${user.username} ${amount >= 0 ? 'received' : 'lost'} ${coins(amount)}`);
 }
@@ -19,16 +20,16 @@ async function setCoins(user, amount) {
 bot.addCommand('!help', helpCommand);
 bot.addCommand('!commands', helpCommand);
 
-bot.addAutoCommand('!watch', watchCommand, '5m');
+bot.addAutoCommand('!watch', watchCommand, 5);
 bot.addCommand('!live', watchCommand);
 
 bot.addAutoCommand('!discord', () => {
     bot.say('Join our growing Discord community for developers by heading over to discord.gg/devwars');
-}, '13m');
+}, 13);
 
 bot.addAutoCommand('!follow', () => {
     bot.say("Enjoying DevWars? Hit the follow button so you don't miss another stream!");
-}, '21m');
+}, 21);
 
 bot.addCommand('!coins', async (ctx) => {
     let userCoins = await devwarsService.getUserCoins(ctx.user);
@@ -42,7 +43,7 @@ bot.addCommand('!coins', async (ctx) => {
 bot.addCommand('@coinsall <amount>', async (ctx, args) => {
     const [amount] = args;
 
-    if (!validNumber(amount)) {
+    if (!isValidNumber(amount)) {
         return bot.say('<amount> must be a number');
     }
 
@@ -53,7 +54,7 @@ bot.addCommand('@coinsall <amount>', async (ctx, args) => {
 bot.addCommand('@givecoins <username> <amount>', async (ctx, args) => {
     const [username, amount] = args;
 
-    if (!validNumber(amount)) {
+    if (!isValidNumber(amount)) {
         return bot.say('<amount> must be a number');
     }
 
@@ -68,7 +69,7 @@ bot.addCommand('@givecoins <username> <amount>', async (ctx, args) => {
 bot.addCommand('@takecoins <username> <amount>', async (ctx, args) => {
     const [username, amount] = args;
 
-    if (!validNumber(amount)) {
+    if (!isValidNumber(amount)) {
         return bot.say('<amount> must be a number');
     }
 

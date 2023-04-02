@@ -3,15 +3,30 @@ import * as tmi from 'tmi.js';
 import twitchService from '../services/twitch.service';
 import config from '../config';
 import { parseArguments, checkArgumentLength, isCommand, getCommandName, coins } from '../utils';
-import Command from './Command';
+import Command, { CommandAction } from './Command';
 import User from './User';
 
-export default class Bot {
-    twitchClient = null;
+type BotBetting = {
+    _timeout: NodeJS.Timeout | null;
+    open: boolean;
+    options: string[];
+    bets: Map<string, number>;
+    startAt: number | null;
+    endAt: number | null;
+};
+
+type BotHype = {
+    _timeout: NodeJS.Timeout | null;
+    open: boolean;
+    hypes: string[];
+};
+
+class Bot {
+    twitchClient: tmi.Client;
     channel = config.twitch.channel;
     isLive = false;
     symbols: string[] = ['!', '$', '#', '@'];
-    betting = {
+    betting: BotBetting = {
         _timeout: null,
         open: false,
         options: ['blue', 'red', 'tie'],
@@ -19,7 +34,7 @@ export default class Bot {
         startAt: null,
         endAt: null,
     };
-    hype = {
+    hype: BotHype = {
         _timeout: null,
         open: false,
         hypes: [],
@@ -31,7 +46,8 @@ export default class Bot {
         setInterval(this.updateIsLiveStatus.bind(this), minutesToMs(1));
     }
 
-    async onChat(channel, apiUser, message, self) {
+    async onChat(event: Parameters<tmi.Events['chat']>) {
+        const [_, apiUser, message, self] = event;
         if (self || !isCommand(message)) return;
 
         const command = this.commands[getCommandName(message)];
@@ -68,18 +84,18 @@ export default class Bot {
         return this.say(`Everyone received ${coins(giveOutAmount)} ${bonusMsg}`);
     }
 
-    async addCommand(template: string, action: Function) {
+    async addCommand(template: string, action: CommandAction) {
         const command = new Command(template, action);
         this.commands[command.name] = command;
     }
 
-    async addAutoCommand(template, action, interval) {
+    async addAutoCommand(template: string, action: CommandAction, intervalInMinutes: number) {
         const command = new Command(template, action);
         this.commands[command.name] = command;
 
         setInterval(() => {
             if (this.isLive) command.action();
-        }, minutesToMs(interval));
+        }, minutesToMs(intervalInMinutes));
     }
 
     async selfCommand(command: Command) {
@@ -117,9 +133,12 @@ export default class Bot {
             channels: [`#${config.twitch.channel}`],
         });
 
-        this.twitchClient.on('chat', this.onChat.bind(this));
+        // TODO: Fix any type casting
+        this.twitchClient.on('chat', this.onChat.bind(this) as any);
 
         await this.twitchClient.connect();
         await this.updateIsLiveStatus();
     }
 }
+
+export default new Bot();

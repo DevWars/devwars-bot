@@ -1,10 +1,11 @@
 import bot from '../common/bot';
+import User from '../common/User';
 import devwarsService from '../services/devwars.service';
-import { validNumber, coins } from '../utils';
+import { isValidNumber, coins } from '../utils';
 
 const hypeEmote = '🚃 ';
 
-function hasHyped(user) {
+function hasHyped(user: User) {
     return bot.hype.hypes.find((hype) => hype.user.username === user.username);
 }
 
@@ -13,7 +14,7 @@ function getHypeAmount() {
     return amounts.reduce((accumulator, amount) => accumulator + amount, 0);
 }
 
-function addHype(user) {
+function addHype(user: User) {
     const amount = user.subscriber ? 3 : 1;
     const role = user.subscriber ? '[🔥 Subscriber]' : '';
 
@@ -92,7 +93,7 @@ bot.addCommand('!hype', (ctx) => {
 bot.addCommand('#openhype <minutes>', (ctx, args) => {
     const [minutes] = args;
 
-    if (!validNumber(minutes)) {
+    if (!isValidNumber(minutes)) {
         return bot.say('<minutes> must be a number');
     }
 

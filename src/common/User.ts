@@ -1,5 +1,5 @@
-import camelize from 'camelize-ts';
 import config from '../config';
+import { ChatUserstate } from 'tmi.js';
 
 export type UserRole = 'admin' | 'mod' | 'subscriber' | 'user';
 
@@ -10,19 +10,17 @@ export default class User {
     role: UserRole;
     subscriber: boolean;
 
-    constructor(apiUser) {
-        const { userId, username, displayName, mod, subscriber } = camelize(apiUser);
-
-        this.id = Number(userId);
-        this.username = username;
-        this.displayName = displayName;
-        this.subscriber = subscriber;
+    constructor(user: ChatUserstate) {
+        this.id = Number(user['user-id']);
+        this.username = user.username ?? '';
+        this.displayName = user['display-name'] ?? '';
+        this.subscriber = Boolean(user.subscriber);
 
         if (this.username === config.twitch.channel) {
             this.role = 'admin';
-        } else if (mod) {
+        } else if (user.mod) {
             this.role = 'mod';
-        } else if (subscriber) {
+        } else if (user.subscriber) {
             this.role = 'subscriber';
         } else {
             this.role = 'user';

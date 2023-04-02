@@ -1,19 +1,21 @@
 const splitargs = require('splitargs');
+import Command from "../common/Command";
 
-export function isCommand(message) {
+export function isCommand(message: string) {
     if (typeof message !== 'string') return false;
 
     return message.trim().charAt(0) === '!';
 }
 
-export function getCommandName(message) {
+export function getCommandName(message: string) {
     const firstWord = message.trim().split(' ')[0];
     const command = firstWord.toLowerCase().substring(1);
 
     return command;
 }
 
-export function parseArguments(message) {
+// TODO: Refactor this to be more readable
+export function parseArguments(message: string) {
     let args = message.trim().split(' ').slice(1).join(' ');
 
     if (args.match(/\|/)) {
@@ -51,16 +53,16 @@ export function checkArgumentLength(inputArgs, commandArgs) {
     return false;
 }
 
-export function getArgumentProps(commandTemplate) {
+export function getArgumentProps(commandTemplate: Command['template']) {
     const argArr = commandTemplate.split(' ').splice(1);
     return argArr.map(arg => arg.replace(/[<>]/g, ''));
 }
 
-export function validNumber(number) {
-    return (!Number.isNaN(number) && number % 1 === 0 && number >= 0);
+export function isValidNumber(value: number): boolean {
+    return (!Number.isNaN(value) && value % 1 === 0 && value >= 0);
 }
 
-export function coins(number: number) {
+export function coins(number: number | string) {
     const formattedCoins = number.toLocaleString();
     return `devwarsCoin ${formattedCoins}`;
 }

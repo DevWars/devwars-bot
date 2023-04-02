@@ -2,28 +2,39 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+const getEnvStr = (key: string): string => {
+    const value = process.env[key];
+    if (!value) throw new Error(`Missing environment variable ${key}`);
+
+    return value;
+};
+
+const getEnvNum = (key: string): number => {
+    return Number(getEnvStr(key));
+}
+
 const twitch = {
-    channel: process.env.TWITCH_CHANNEL,
-    username: process.env.TWITCH_USERNAME,
-    password: process.env.TWITCH_OAUTH_TOKEN,
-    clientId: process.env.TWITCH_CLIENT_ID,
-    clientSecret: process.env.TWITCH_CLIENT_SECRET,
-    accessToken: process.env.TWITCH_ACCESS_TOKEN,
-    refreshToken: process.env.TWITCH_REFRESH_TOKEN,
+    channel: getEnvStr('TWITCH_CHANNEL'),
+    username: getEnvStr('TWITCH_USERNAME'),
+    password: getEnvStr('TWITCH_OAUTH_TOKEN'),
+    clientId: getEnvStr('TWITCH_CLIENT_ID'),
+    clientSecret: getEnvStr('TWITCH_CLIENT_SECRET'),
+    accessToken: getEnvStr('TWITCH_ACCESS_TOKEN'),
+    refreshToken: getEnvStr('TWITCH_REFRESH_TOKEN'),
 };
 
 const devwars = {
-    url: process.env.DEVWARS_API_URL,
-    apiKey: process.env.DEVWARS_API_KEY,
+    url: getEnvStr('DEVWARS_API_URL'),
+    apiKey: getEnvStr('DEVWARS_API_KEY'),
 };
 
 const devwarsLive = {
-    url: process.env.DEVWARS_LIVE_URL,
-    apiKey: process.env.DEVWARS_LIVE_KEY,
+    url: getEnvStr('DEVWARS_LIVE_URL'),
+    apiKey: getEnvStr('DEVWARS_LIVE_KEY'),
 };
 
 const devwarsWidgets = {
-    port: process.env.DEVWARS_WIDGETS_PORT,
+    port: getEnvNum('DEVWARS_WIDGETS_PORT'),
 };
 
 export default {
