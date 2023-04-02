@@ -1,9 +1,15 @@
 import bot from '../common/bot';
 import User from '../common/User';
 import devwarsService from '../services/devwars.service';
+import { TwitchUser } from '../services/twitch.service';
 import { isValidNumber, coins } from '../utils';
 
 const hypeEmote = '🚃 ';
+
+export interface Hype {
+    user: TwitchUser;
+    amount: number;
+}
 
 function hasHyped(user: User) {
     return bot.hype.hypes.find((hype) => hype.user.username === user.username);
@@ -38,7 +44,9 @@ async function awardCoins() {
 }
 
 async function closeHype() {
-    clearInterval(bot.hype._timeout);
+    if (bot.hype._timeout) {
+        clearInterval(bot.hype._timeout);
+    }
 
     const hypeAmt = getHypeAmount();
     bot.hype.open = false;

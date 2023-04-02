@@ -4,6 +4,7 @@ import twitchService, { TwitchUser } from '../services/twitch.service';
 import config from '../config';
 import { parseArguments, checkArgumentLength, isCommand, getCommandName, coins } from '../utils';
 import { Bet } from "../commands/betting";
+import { Hype } from "../commands/hype";
 import Command, { AutoCommand, AutoCommandAction, CommandAction } from './Command';
 import User from './User';
 
@@ -21,7 +22,7 @@ interface BotBetting {
 interface BotHype {
     _timeout: NodeJS.Timeout | null;
     open: boolean;
-    hypes: string[];
+    hypes: Hype[];
 };
 
 type ChatEventHandler = (
