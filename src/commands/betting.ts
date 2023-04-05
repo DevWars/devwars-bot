@@ -12,7 +12,7 @@ export interface Bet {
     option: string;
 }
 
-interface OptionSummary {
+export interface OptionSummary {
     name: string;
     total: number;
     ratio: number;

@@ -4,10 +4,14 @@ import config from '../config';
 import bot, { BettingState } from '../common/bot';
 import devwarsLiveService from './devwarsLive.service';
 import { Vote } from '../commands/voting';
-import { Bet } from '../commands/betting';
+import { Bet, OptionSummary, createOptionSummaries } from '../commands/betting';
 
-interface VotingState {
+interface LiveVotingState {
     open: boolean;
+}
+
+interface LiveBettingState extends Pick<BettingState, 'open' | 'startAt' | 'endAt'> {
+    options: OptionSummary[];
 }
 
 class DevWarsWidgetsService {
@@ -37,10 +41,7 @@ class DevWarsWidgetsService {
         });
     }
 
-    getBettingState(): Pick<BettingState, 'open' | 'startAt' | 'endAt' | 'options'> {
-        // TEMP: Avoid circular import until store is separate from bot
-        const { createOptionSummaries } = require('../commands/betting');
-
+    getBettingState(): LiveBettingState {
         const state = _.pick(bot.betting, ['open', 'startAt', 'endAt']);
         return { ...state, options: createOptionSummaries() };
     }
@@ -53,7 +54,7 @@ class DevWarsWidgetsService {
         this.server?.emit('betting.bet', bet);
     }
 
-    getVotingState(): VotingState {
+    getVotingState(): LiveVotingState {
         return { open: this._stage === 'vote' };
     }
 

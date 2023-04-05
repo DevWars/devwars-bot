@@ -1,6 +1,6 @@
 import bot from './common/bot';
 import devWarsLiveService from './services/devwarsLive.service';
-import devWarsWidgetsService from './services/devWarsWidgets.service';
+import devWarsWidgetsService from './services/devwarsWidgets.service';
 
 // Register commands
 require('./commands');
