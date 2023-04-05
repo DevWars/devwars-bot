@@ -3,7 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
 import devwarsService from './devwars.service';
 import config from '../config';
-import Twitch, { HelixUser, HelixStream } from 'twitch';
+import { ApiClient, HelixUser, HelixStream } from 'twitch';
 
 interface TwitchConfig {
     accessToken: string;
@@ -23,7 +23,7 @@ export interface UserCoinUpdate {
 class TwitchService {
     twitchConfigPath: string = path.join(__dirname, '../../twitch.config.json');
     twitchConfig: TwitchConfig = _.pick(config.twitch, ['accessToken', 'refreshToken']);
-    twitchClient: Twitch;
+    twitchClient: ApiClient;
 
     constructor() {
         if (existsSync(this.twitchConfigPath)) {
@@ -36,7 +36,7 @@ class TwitchService {
             onRefresh: this.updateTwitchConfig.bind(this),
         };
 
-        this.twitchClient = Twitch.withCredentials(
+        this.twitchClient = ApiClient.withCredentials(
             config.twitch.clientId,
             this.twitchConfig.accessToken,
             undefined,
