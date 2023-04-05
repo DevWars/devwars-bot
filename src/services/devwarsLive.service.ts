@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { EventEmitter } from 'events';
-import io, { Socket } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 import fetch, { RequestInit } from 'node-fetch';
 import { Timestamp } from '../common/bot';
 import config from '../config';

@@ -28,7 +28,7 @@ class DevWarsService {
 
     async getUserCoins(user: TwitchUser): Promise<number | null> {
         try {
-            const res = await this.apiFetch<LinkedAccountCoinsResponse>(`/twitch/${user.id}/coins`);
+            const res = await this.apiFetch<LinkedAccountCoinsResponse>(`oauth/twitch/${user.id}/coins`);
             return res.coins;
         } catch (error) {
             console.log(error)
@@ -38,7 +38,7 @@ class DevWarsService {
 
     async updateCoinsForUser(user: TwitchUser, amount: number) {
         try {
-            await this.apiFetch<any>(`/twitch/${user.id}/coins`, {
+            await this.apiFetch<any>(`oauth/twitch/${user.id}/coins`, {
                 method: 'PATCH',
                 body: JSON.stringify({
                     username: user.username,
