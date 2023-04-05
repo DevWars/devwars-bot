@@ -105,7 +105,7 @@ class Bot {
     }
 
     async updateIsLiveStatus() {
-        this.isLive = Boolean(await twitchService.checkStreamStatus());
+        this.isLive = await twitchService.isStreamLive();
     }
 
     action(message: string): void {
@@ -125,8 +125,8 @@ class Bot {
             options: { debug: true },
             connection: { reconnect: true },
             identity: {
-                username: config.twitch.username,
-                password: config.twitch.password,
+                username: config.twitch.bot.username,
+                password: config.twitch.bot.password,
             },
             channels: [`#${config.twitch.channel}`],
         });

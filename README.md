@@ -50,9 +50,9 @@ To obtain the initial `accessToken` and `refreshToken`:
 ```
 GET https://id.twitch.tv/oauth2/authorize
     --data-urlencode
-    ?response_type=code
-    &client_id=<your client ID>
+    ?client_id=<your client ID>
     &redirect_uri=<your redirect URI>
+    &response_type=code&scope=moderator:read:chatters
 ```
 3. Get `accessToken` and `refreshToken`
 ```

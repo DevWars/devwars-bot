@@ -1,14 +1,10 @@
 import * as _ from 'lodash';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
 import devwarsService from './devwars.service';
 import config from '../config';
-import { ApiClient, HelixUser, HelixStream } from 'twitch';
-
-interface TwitchConfig {
-    accessToken: string;
-    refreshToken: string;
-}
+import { RefreshingAuthProvider } from '@twurple/auth';
+import { ApiClient } from '@twurple/api';
 
 export interface TwitchUser {
     id: number;
@@ -20,66 +16,50 @@ export interface UserCoinUpdate {
     amount: number;
 }
 
+type TokenData = Parameters<RefreshingAuthProvider['addUser']>[1];
+
 class TwitchService {
     twitchConfigPath: string = path.join(__dirname, '../../twitch.config.json');
-    twitchConfig: TwitchConfig = _.pick(config.twitch, ['accessToken', 'refreshToken']);
-    twitchClient: ApiClient;
+    tokenData: TokenData;
+    client: ApiClient;
 
     constructor() {
-        if (existsSync(this.twitchConfigPath)) {
-            this.twitchConfig = JSON.parse(readFileSync(this.twitchConfigPath, 'utf8'));
-        }
+        this.tokenData = JSON.parse(readFileSync(this.twitchConfigPath, 'utf8'));
 
-        const refreshConfig = {
-            clientSecret: config.twitch.clientSecret,
-            refreshToken: this.twitchConfig.refreshToken,
-            onRefresh: this.updateTwitchConfig.bind(this),
-        };
+        const authProvider = new RefreshingAuthProvider({
+            clientId: config.twitch.bot.clientId,
+            clientSecret: config.twitch.bot.clientSecret,
+            onRefresh: this.onRefresh.bind(this),
+        });
 
-        this.twitchClient = ApiClient.withCredentials(
-            config.twitch.clientId,
-            this.twitchConfig.accessToken,
-            undefined,
-            refreshConfig,
-        );
+        // Add user with initial tokens
+        authProvider.addUser(config.twitch.bot.userId, this.tokenData);
+
+        this.client = new ApiClient({ authProvider });
     }
 
-    updateTwitchConfig(twitchConfig: TwitchConfig): void {
-        this.twitchConfig = _.pick(twitchConfig, ['accessToken', 'refreshToken']);
+    onRefresh(newTokenData: TokenData) {
         // Update the local configuration file with the related data.
-        writeFileSync(this.twitchConfigPath, JSON.stringify(this.twitchConfig, null, 2));
+        writeFileSync(this.twitchConfigPath, JSON.stringify(newTokenData, null, 4), 'utf8');
     }
 
     async giveCoinsToAllViewers(amount: number): Promise<void> {
-        const usernames = await this.getCurrentViewers();
-        const twitchUsers = await this.getUsersByUsernames(usernames);
-
-        const updates: UserCoinUpdate[] = twitchUsers.map((user) => ({ user, amount }));
+        const users = await this.getCurrentViewers();
+        const updates: UserCoinUpdate[] = users.map(user => ({ user, amount }));
         return devwarsService.updateCoinsForUsers(updates);
     }
 
-    async getCurrentViewers(): Promise<string[]> {
-        const viewers = await this.twitchClient.unsupported.getChatters(config.twitch.channel);
-        return _.uniq(viewers.allChatters);
+    async getCurrentViewers(): Promise<TwitchUser[]> {
+        const chatters = await this.client.chat.getChatters(config.twitch.userId, config.twitch.bot.userId);
+        return chatters.data.map(chatter => ({
+            id: Number(chatter.userId),
+            username: chatter.userName
+        }));
     }
 
-    // Gathers all users from twitch in chunks of 100.
-    async getUsersByUsernames(usernames: string[]): Promise<TwitchUser[]> {
-        const requests = _.chunk(usernames, 100).map((users) => {
-            return this.twitchClient.helix.users.getUsersByNames(users);
-        });
-
-        const results: HelixUser[] = _.flatten(await Promise.all(requests));
-        return results.map((user) => ({ id: Number(user.id), username: user.name }));
-    }
-
-    async getUserByUsername(username: string): Promise<TwitchUser | undefined> {
-        const [user] = await this.getUsersByUsernames([username]);
-        return user;
-    }
-
-    async checkStreamStatus(): Promise<HelixStream | null> {
-        return this.twitchClient.helix.streams.getStreamByUserName(config.twitch.channel);
+    async isStreamLive(): Promise<boolean> {
+        const stream = await this.client.streams.getStreamByUserName(config.twitch.channel);
+        return Boolean(stream);
     }
 }
 

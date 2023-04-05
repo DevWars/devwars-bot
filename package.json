@@ -11,13 +11,14 @@
         "test": "jest"
     },
     "dependencies": {
+        "@twurple/api": "^6.1.0",
+        "@twurple/auth": "^6.1.0",
         "dotenv": "^16.0.3",
         "lodash": "^4.17.21",
         "node-fetch": "^2.6.9",
         "socket.io": "^4.6.1",
         "socket.io-client": "^4.6.1",
-        "tmi.js": "^1.8.5",
-        "twitch": "4.6.7"
+        "tmi.js": "^1.8.5"
     },
     "devDependencies": {
         "@babel/core": "^7.21.4",

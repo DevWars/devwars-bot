@@ -17,12 +17,15 @@ class DevWarsService {
             ...options,
         });
 
+        const responseContentType = res.headers.get('Content-Type');
+        const isJsonResponse = responseContentType && responseContentType.includes('application/json');
+
         if (!res.ok) {
-            const body = await res.json();
+            const body = isJsonResponse ? await res.json() : await res.text();
             throw new Error((body as { error: string }).error);
         }
 
-        return res.json() as Promise<T>;
+        return isJsonResponse ? res.json() as Promise<T> : res.text() as Promise<T>;
     }
 
 
@@ -38,7 +41,7 @@ class DevWarsService {
 
     async updateCoinsForUser(user: TwitchUser, amount: number) {
         try {
-            await this.apiFetch<any>(`oauth/twitch/${user.id}/coins`, {
+            await this.apiFetch(`oauth/twitch/${user.id}/coins`, {
                 method: 'PATCH',
                 body: JSON.stringify({
                     username: user.username,

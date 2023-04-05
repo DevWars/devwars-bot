@@ -14,13 +14,15 @@ const getEnvNum = (key: string): number => {
 }
 
 const twitch = {
-    channel: getEnvStr('TWITCH_CHANNEL'),
-    username: getEnvStr('TWITCH_USERNAME'),
-    password: getEnvStr('TWITCH_OAUTH_TOKEN'),
-    clientId: getEnvStr('TWITCH_CLIENT_ID'),
-    clientSecret: getEnvStr('TWITCH_CLIENT_SECRET'),
-    accessToken: getEnvStr('TWITCH_ACCESS_TOKEN'),
-    refreshToken: getEnvStr('TWITCH_REFRESH_TOKEN'),
+    userId: getEnvNum('TWITCH_CHANNEL_USER_ID'),
+    channel: getEnvStr('TWITCH_CHANNEL_USERNAME'),
+    bot: {
+        userId: getEnvNum('TWITCH_BOT_USER_ID'),
+        username: getEnvStr('TWITCH_BOT_USERNAME'),
+        password: getEnvStr('TWITCH_BOT_OAUTH_TOKEN'),
+        clientId: getEnvStr('TWITCH_BOT_CLIENT_ID'),
+        clientSecret: getEnvStr('TWITCH_BOT_CLIENT_SECRET'),
+    },
 };
 
 const devwars = {
