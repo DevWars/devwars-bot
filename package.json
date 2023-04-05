@@ -16,7 +16,6 @@
         "node-fetch": "^2.6.9",
         "socket.io": "^4.6.1",
         "socket.io-client": "^4.6.1",
-        "splitargs": "0.0.7",
         "tmi.js": "^1.8.5",
         "twitch": "4.6.7"
     },

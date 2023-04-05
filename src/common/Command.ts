@@ -1,8 +1,8 @@
-import { getArgumentProps, getCommandName, minutesToMs } from '../utils';
+import { ParsedArgument, getArgumentProps, getCommandName, minutesToMs } from '../utils';
 import User, { UserRole } from './User';
 import bot from './bot';
 
-export type CommandAction = (ctx: { user: User; message: string }, args: string[]) => void;
+export type CommandAction = (ctx: { user: User; message: string }, args: ParsedArgument[]) => void;
 export type AutoCommandAction = () => void | Promise<void>;
 
 const ROLE_PERMISSIONS: { [role in UserRole]: string[] } = {

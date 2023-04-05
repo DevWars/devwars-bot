@@ -1,5 +1,7 @@
-const splitargs = require('splitargs');
+import { splitArgs } from './splitArgs';
 import Command from "../common/Command";
+
+export type ParsedArgument = string | number;
 
 export function isCommand(message: string) {
     if (typeof message !== 'string') return false;
@@ -15,19 +17,19 @@ export function getCommandName(message: string) {
 }
 
 // TODO: Refactor this to be more readable
-export function parseArguments(message: string) {
-    let args = message.trim().split(' ').slice(1).join(' ');
+export function parseArguments(message: string): ParsedArgument[] {
+    let cleanedMessage = message.trim().split(' ').slice(1).join(' ');
 
-    if (args.match(/\|/)) {
-        let options = args.split('|')[0];
-        const optionsSpread = args.split('|').slice(1)
+    let args = undefined;
+    if (cleanedMessage.match(/\|/)) {
+        const optionsSpread = cleanedMessage.split('|').slice(1)
             .map(opt => opt.trim())
             .filter(question => question.length > 1);
 
-        options = splitargs(options);
+        const options = splitArgs(cleanedMessage.split('|')[0]);
         args = [...options, ...optionsSpread];
     } else {
-        args = splitargs(args.trim());
+        args = splitArgs(cleanedMessage.trim());
     }
 
     return args.map((opt) => {
@@ -39,7 +41,7 @@ export function parseArguments(message: string) {
     });
 }
 
-export function checkArgumentLength(inputArgs, commandArgs) {
+export function checkArgumentLength(inputArgs: ParsedArgument[], commandArgs: Command['args']) {
     const unlimitedArgs = commandArgs.find(arg => arg.includes('...'));
 
     if (!unlimitedArgs && inputArgs.length > commandArgs.length) {
