@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { EventEmitter } from 'events';
 import io, { Socket } from 'socket.io-client';
-import fetch from 'node-fetch';
+import fetch, { RequestInit } from 'node-fetch';
 import { Timestamp } from '../common/bot';
 import config from '../config';
 import { Vote } from '../commands/voting';
@@ -60,7 +60,7 @@ class DevWarsLiveService extends EventEmitter {
         });
     }
 
-    async apiFetch<T>(url: string, options?: object): Promise<T> {
+    async apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
         const res = await fetch(`${config.devwarsLive.url}/api/${url}`, {
             method: 'GET',
             headers: {

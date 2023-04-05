@@ -1,22 +1,53 @@
-const DevWarsApi = require('devwars-api-client');
-import axios from 'axios';
+import fetch, { RequestInit } from 'node-fetch';
 import config from '../config';
 import { TwitchUser, UserCoinUpdate } from './twitch.service';
 
-const axiosClient = axios.create({
-    baseURL: config.devwars.url,
-    headers: { apikey: config.devwars.apiKey },
-});
-const api = new DevWarsApi(axiosClient);
+interface LinkedAccountCoinsResponse {
+    coins: number;
+}
 
 class DevWarsService {
-    async getUserCoins(user: TwitchUser) {
-        const res = await api.linkedAccounts.getCoinsByProviderAndId('twitch', user.id);
-        return res.coins;
+    async apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
+        const res = await fetch(`${config.devwars.url}/${url}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                apikey: config.devwars.apiKey,
+            },
+            ...options,
+        });
+
+        if (!res.ok) {
+            const body = await res.json();
+            throw new Error((body as { error: string }).error);
+        }
+
+        return res.json() as Promise<T>;
+    }
+
+
+    async getUserCoins(user: TwitchUser): Promise<number | null> {
+        try {
+            const res = await this.apiFetch<LinkedAccountCoinsResponse>(`/twitch/${user.id}/coins`);
+            return res.coins;
+        } catch (error) {
+            console.log(error)
+            return null;
+        }
     }
 
     async updateCoinsForUser(user: TwitchUser, amount: number) {
-        await api.linkedAccounts.updateCoinsByProviderAndId('twitch', user.id, user.username, amount);
+        try {
+            await this.apiFetch<any>(`/twitch/${user.id}/coins`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    username: user.username,
+                    amount,
+                }),
+            });
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     async updateCoinsForUsers(updates: UserCoinUpdate[]) {
