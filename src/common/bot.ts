@@ -63,12 +63,6 @@ class Bot {
             channels: [`#${config.twitch.channel}`],
         });
 
-        // Register the 'chat' event handler.
-        this.twitchClient.on('chat', this.onChat);
-
-        // Connect to Twitch.
-        this.connect();
-
         // Start the auto commands.
         setInterval(this.onGiveOut.bind(this), minutesToMs(15));
         setInterval(this.updateIsLiveStatus.bind(this), minutesToMs(1));
@@ -138,6 +132,8 @@ class Bot {
     }
 
     async connect() {
+        this.twitchClient.on('chat', this.onChat);
+
         await this.twitchClient.connect();
         await this.updateIsLiveStatus();
     }
