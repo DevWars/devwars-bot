@@ -53,6 +53,23 @@ class Bot {
     commands: Record<Command['name'], Command> = {};
 
     constructor() {
+        this.twitchClient = new tmi.Client({
+            options: { debug: true },
+            connection: { reconnect: true },
+            identity: {
+            username: config.twitch.bot.username,
+            password: config.twitch.bot.password,
+            },
+            channels: [`#${config.twitch.channel}`],
+        });
+
+        // Register the 'chat' event handler.
+        this.twitchClient.on('chat', this.onChat);
+
+        // Connect to Twitch.
+        this.connect();
+
+        // Start the auto commands.
         setInterval(this.onGiveOut.bind(this), minutesToMs(15));
         setInterval(this.updateIsLiveStatus.bind(this), minutesToMs(1));
     }
@@ -121,18 +138,6 @@ class Bot {
     }
 
     async connect() {
-        this.twitchClient = new tmi.client({
-            options: { debug: true },
-            connection: { reconnect: true },
-            identity: {
-                username: config.twitch.bot.username,
-                password: config.twitch.bot.password,
-            },
-            channels: [`#${config.twitch.channel}`],
-        });
-
-        this.twitchClient.on('chat', this.onChat);
-
         await this.twitchClient.connect();
         await this.updateIsLiveStatus();
     }
