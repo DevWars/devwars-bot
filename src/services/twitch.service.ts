@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import * as path from 'path';
 import devwarsService from './devwars.service';
 import config from '../config';
@@ -24,7 +24,16 @@ class TwitchService {
     client: ApiClient;
 
     constructor() {
-        this.tokenData = JSON.parse(readFileSync(this.twitchConfigPath, 'utf8'));
+        if (existsSync(this.twitchConfigPath)) {
+            this.tokenData = JSON.parse(readFileSync(this.twitchConfigPath, 'utf8'));
+        } else {
+            this.tokenData = {
+                accessToken: config.twitch.bot.accessToken,
+                refreshToken: config.twitch.bot.refreshToken,
+                expiresIn: 0,
+                obtainmentTimestamp: 0
+            };
+        }
 
         const authProvider = new RefreshingAuthProvider({
             clientId: config.twitch.bot.clientId,

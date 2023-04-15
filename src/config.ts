@@ -22,6 +22,8 @@ const twitch = {
         password: getEnvStr('TWITCH_BOT_OAUTH_TOKEN'),
         clientId: getEnvStr('TWITCH_BOT_CLIENT_ID'),
         clientSecret: getEnvStr('TWITCH_BOT_CLIENT_SECRET'),
+        accessToken: getEnvStr('TWITCH_BOT_ACCESS_TOKEN'),
+        refreshToken: getEnvStr('TWITCH_BOT_REFRESH_TOKEN'),
     },
 };
 
