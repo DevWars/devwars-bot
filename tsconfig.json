@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "target": "es2018",
+        "module": "commonjs",
+        "alwaysStrict": true,
+        "strict": true,
+        "strictPropertyInitialization": false,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "sourceMap": true,
+        "outDir": "dist"
+    },
+    "include": [
+        "src/**/*.ts",
+        "tests/**/*.test.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

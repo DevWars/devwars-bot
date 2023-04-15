@@ -1,31 +1,35 @@
-const splitargs = require('splitargs');
+import { splitArgs } from './splitArgs';
+import Command from "../common/Command";
 
-function isCommand(message) {
+export type ParsedArgument = string | number;
+
+export function isCommand(message: string) {
     if (typeof message !== 'string') return false;
 
     return message.trim().charAt(0) === '!';
 }
 
-function getCommandName(message) {
+export function getCommandName(message: string) {
     const firstWord = message.trim().split(' ')[0];
     const command = firstWord.toLowerCase().substring(1);
 
     return command;
 }
 
-function parseArguments(message) {
-    let args = message.trim().split(' ').slice(1).join(' ');
+// TODO: Refactor this to be more readable
+export function parseArguments(message: string): ParsedArgument[] {
+    let cleanedMessage = message.trim().split(' ').slice(1).join(' ');
 
-    if (args.match(/\|/)) {
-        let options = args.split('|')[0];
-        const optionsSpread = args.split('|').slice(1)
+    let args = undefined;
+    if (cleanedMessage.match(/\|/)) {
+        const optionsSpread = cleanedMessage.split('|').slice(1)
             .map(opt => opt.trim())
             .filter(question => question.length > 1);
 
-        options = splitargs(options);
+        const options = splitArgs(cleanedMessage.split('|')[0]);
         args = [...options, ...optionsSpread];
     } else {
-        args = splitargs(args.trim());
+        args = splitArgs(cleanedMessage.trim());
     }
 
     return args.map((opt) => {
@@ -37,7 +41,7 @@ function parseArguments(message) {
     });
 }
 
-function checkArgumentLength(inputArgs, commandArgs) {
+export function checkArgumentLength(inputArgs: ParsedArgument[], commandArgs: Command['args']) {
     const unlimitedArgs = commandArgs.find(arg => arg.includes('...'));
 
     if (!unlimitedArgs && inputArgs.length > commandArgs.length) {
@@ -51,26 +55,20 @@ function checkArgumentLength(inputArgs, commandArgs) {
     return false;
 }
 
-function getArgumentProps(commandTemplate) {
+export function getArgumentProps(commandTemplate: Command['template']) {
     const argArr = commandTemplate.split(' ').splice(1);
     return argArr.map(arg => arg.replace(/[<>]/g, ''));
 }
 
-function validNumber(number) {
-    return (!Number.isNaN(number) && number % 1 === 0 && number >= 0);
+export function isValidNumber(value: number): boolean {
+    return (!Number.isNaN(value) && value % 1 === 0 && value >= 0);
 }
 
-function coins(number) {
+export function coins(number: number | string) {
     const formattedCoins = number.toLocaleString();
     return `devwarsCoin ${formattedCoins}`;
 }
 
-module.exports = {
-    isCommand,
-    getCommandName,
-    parseArguments,
-    checkArgumentLength,
-    getArgumentProps,
-    validNumber,
-    coins,
-};
+export function minutesToMs(minutes: number) {
+    return minutes * 60 * 1000;
+}

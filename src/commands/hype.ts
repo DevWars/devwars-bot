@@ -1,11 +1,17 @@
-const ms = require('ms');
-const bot = require('../common/bot');
-const devwarsService = require('../services/devwars.service');
-const { validNumber, coins } = require('../utils');
+import bot from '../common/bot';
+import User from '../common/User';
+import devwarsService from '../services/devwars.service';
+import { TwitchUser } from '../services/twitch.service';
+import { isValidNumber, coins } from '../utils';
 
 const hypeEmote = '🚃 ';
 
-function hasHyped(user) {
+export interface Hype {
+    user: TwitchUser;
+    amount: number;
+}
+
+function hasHyped(user: User) {
     return bot.hype.hypes.find((hype) => hype.user.username === user.username);
 }
 
@@ -14,7 +20,7 @@ function getHypeAmount() {
     return amounts.reduce((accumulator, amount) => accumulator + amount, 0);
 }
 
-function addHype(user) {
+function addHype(user: User) {
     const amount = user.subscriber ? 3 : 1;
     const role = user.subscriber ? '[🔥 Subscriber]' : '';
 
@@ -38,7 +44,9 @@ async function awardCoins() {
 }
 
 async function closeHype() {
-    clearInterval(bot.hype._timeout);
+    if (bot.hype._timeout) {
+        clearInterval(bot.hype._timeout);
+    }
 
     const hypeAmt = getHypeAmount();
     bot.hype.open = false;
@@ -54,8 +62,8 @@ async function closeHype() {
     bot.hype.hypes = [];
 }
 
-function openHype(minutes) {
-    const formatDuration = ms(ms(`${minutes}m`), { long: true });
+function openHype(minutes: number) {
+    const formatDuration = `${minutes} minute${minutes === 1 ? '' : 's'}}`;
     let duration = 1000 * 60 * minutes;
     bot.hype.open = true;
 
@@ -93,7 +101,7 @@ bot.addCommand('!hype', (ctx) => {
 bot.addCommand('#openhype <minutes>', (ctx, args) => {
     const [minutes] = args;
 
-    if (!validNumber(minutes)) {
+    if (!isValidNumber(minutes)) {
         return bot.say('<minutes> must be a number');
     }
 

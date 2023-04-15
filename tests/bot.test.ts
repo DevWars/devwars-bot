@@ -1,7 +1,7 @@
-const Command = require('../src/common/Command');
-const User = require('../src/common/User');
-const config = require('../src/config');
-const { parseArguments } = require('../src/utils');
+import Command from '../src/common/Command';
+import User from '../src/common/User';
+import config from '../src/config';
+import { parseArguments } from '../src/utils';
 
 test('should only execute bot command if user is authorized', async () => {
     const adminCommand = new Command('@command', () => {});
@@ -9,10 +9,10 @@ test('should only execute bot command if user is authorized', async () => {
     const subscriberCommand = new Command('$command', () => {});
     const viewerCommand = new Command('!command', () => {});
 
-    const admin = new User({ userId: 1, username: config.twitch.channel, mod: true, subscriber: false });
-    const mod = new User({ id: 2, username: 'mod', mod: true, subscriber: false });
-    const subscriber = new User({ id: 3, username: 'subscriber', mod: false, subscriber: true });
-    const viewer = new User({ id: 4, username: 'user', mod: false, subscriber: false });
+    const admin = new User({ userId: '1', username: config.twitch.channel, mod: true, subscriber: false });
+    const mod = new User({ id: '2', username: 'mod', mod: true, subscriber: false });
+    const subscriber = new User({ id: '3', username: 'subscriber', mod: false, subscriber: true });
+    const viewer = new User({ id: '4', username: 'user', mod: false, subscriber: false });
 
     expect(adminCommand.userHasPermission(admin)).toBeTruthy();
     expect(adminCommand.userHasPermission(mod)).toBeFalsy();
