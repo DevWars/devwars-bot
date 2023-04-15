@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import bot from '../common/bot';
 import devwarsService from '../services/devwars.service';
 import devwarsWidgetsService from '../services/devwarsWidgets.service';
-import { minutesToMs, isValidNumber, coins } from '../utils';
+import { minutesToMs, parseValidNumber, coins } from '../utils';
 import User from '../common/User';
 import { TwitchUser } from '../services/twitch.service';
 
@@ -92,10 +92,6 @@ async function openBets(minutes: number) {
         return bot.say('Betting is already open');
     }
 
-    if (!isValidNumber(minutes)) {
-        return bot.say('<minutes> must be a number');
-    }
-
     const duration = minutesToMs(minutes);
     bot.betting._timeout = setTimeout(closeBets, duration);
     bot.betting.open = true;
@@ -108,15 +104,19 @@ async function openBets(minutes: number) {
 }
 
 bot.addCommand('!bet <amount> <option>', async (ctx, args) => {
-    const [amount, option] = args;
+    const amount = parseValidNumber(args[0]);
+    const option = String(args[1]);
 
     const userCoins = await devwarsService.getUserCoins(ctx.user);
+    if (!userCoins) {
+        return bot.say('Something went wrong getting your coins');
+    }
 
     if (!bot.betting.open) {
         return bot.say('Betting is closed');
     }
 
-    if (!isValidNumber(amount)) {
+    if (!amount) {
         return bot.whisper(ctx.user, '<amount> must be a number');
     }
 
@@ -160,7 +160,7 @@ bot.addCommand('!clearbet', async (ctx) => {
 });
 
 bot.addCommand('#betwinner <option>', async (ctx, args) => {
-    const [option] = args;
+    const option = String(args[0]);
 
     const validOption = _.includes(bot.betting.options, option);
     if (!validOption) {
@@ -175,7 +175,11 @@ bot.addCommand('#betwinner <option>', async (ctx, args) => {
 });
 
 bot.addCommand('#openbets <minutes>', async (ctx, args) => {
-    const [minutes] = args;
+    const minutes = parseValidNumber(args[0]);
+
+    if (!minutes) {
+        return bot.say('<minutes> must be a number');
+    }
 
     await openBets(minutes);
 });

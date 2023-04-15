@@ -2,7 +2,7 @@ import bot from '../common/bot';
 import User from '../common/User';
 import devwarsService from '../services/devwars.service';
 import { TwitchUser } from '../services/twitch.service';
-import { isValidNumber, coins } from '../utils';
+import { parseValidNumber, coins } from '../utils';
 
 const hypeEmote = '🚃 ';
 
@@ -99,9 +99,9 @@ bot.addCommand('!hype', (ctx) => {
 });
 
 bot.addCommand('#openhype <minutes>', (ctx, args) => {
-    const [minutes] = args;
+    const minutes = parseValidNumber(args[0]);
 
-    if (!isValidNumber(minutes)) {
+    if (!minutes) {
         return bot.say('<minutes> must be a number');
     }
 

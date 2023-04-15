@@ -60,8 +60,14 @@ export function getArgumentProps(commandTemplate: Command['template']) {
     return argArr.map(arg => arg.replace(/[<>]/g, ''));
 }
 
-export function isValidNumber(value: number): boolean {
-    return (!Number.isNaN(value) && value % 1 === 0 && value >= 0);
+export function parseValidNumber(value: ParsedArgument): number | undefined {
+    const number = Number(value);
+    if (!Number.isNaN(number)) return;
+
+    const isValid = number % 1 === 0 && number >= 0;
+    if (!isValid) return;
+
+    return number;
 }
 
 export function coins(number: number | string) {

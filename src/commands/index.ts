@@ -2,7 +2,7 @@ import bot from '../common/bot';
 import User from '../common/User';
 import devwarsService from '../services/devwars.service';
 import twitchService from '../services/twitch.service';
-import { isValidNumber, coins } from '../utils';
+import { parseValidNumber, coins } from '../utils';
 
 function helpCommand() {
     bot.say('To see all commands visit https://www.devwars.tv/docs#watching');
@@ -32,18 +32,18 @@ bot.addAutoCommand('!follow', () => {
 }, 21);
 
 bot.addCommand('!coins', async (ctx) => {
-    let userCoins = await devwarsService.getUserCoins(ctx.user);
+    const userCoins = await devwarsService.getUserCoins(ctx.user);
     if (!userCoins) {
-        userCoins = 0;
+        return bot.say('Something went wrong getting your coins');
     }
 
     bot.say(`@${ctx.user.username} ${coins(userCoins)}`);
 });
 
 bot.addCommand('@coinsall <amount>', async (ctx, args) => {
-    const [amount] = args;
+    const amount = parseValidNumber(args[0]);
 
-    if (!isValidNumber(amount)) {
+    if (!amount) {
         return bot.say('<amount> must be a number');
     }
 
@@ -52,9 +52,10 @@ bot.addCommand('@coinsall <amount>', async (ctx, args) => {
 });
 
 bot.addCommand('@givecoins <username> <amount>', async (ctx, args) => {
-    const [username, amount] = args;
+    const username = String(args[0]);
+    const amount = parseValidNumber(args[1]);
 
-    if (!isValidNumber(amount)) {
+    if (!amount) {
         return bot.say('<amount> must be a number');
     }
 
@@ -67,9 +68,10 @@ bot.addCommand('@givecoins <username> <amount>', async (ctx, args) => {
 });
 
 bot.addCommand('@takecoins <username> <amount>', async (ctx, args) => {
-    const [username, amount] = args;
+    const username = String(args[0]);
+    const amount = parseValidNumber(args[1]);
 
-    if (!isValidNumber(amount)) {
+    if (!amount) {
         return bot.say('<amount> must be a number');
     }
 
