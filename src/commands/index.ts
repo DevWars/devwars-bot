@@ -1,7 +1,6 @@
 import bot from '../common/bot';
-import User from '../common/User';
 import devwarsService from '../services/devwars.service';
-import twitchService from '../services/twitch.service';
+import twitchService, { TwitchUser } from '../services/twitch.service';
 import { parseValidNumber, coins } from '../utils';
 
 function helpCommand() {
@@ -12,7 +11,7 @@ function watchCommand() {
     bot.say('Live Code: https://live.devwars.tv | Blue Site: https://blue.devwars.tv | Red Site: https://red.devwars.tv');
 }
 
-async function setCoins(user: User, amount: number) {
+async function setCoins(user: TwitchUser, amount: number) {
     await devwarsService.updateCoinsForUser(user, amount);
     bot.say(`@${user.username} ${amount >= 0 ? 'received' : 'lost'} ${coins(amount)}`);
 }

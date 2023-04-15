@@ -66,6 +66,16 @@ class TwitchService {
         }));
     }
 
+    async getUserByUsername(username: string): Promise<TwitchUser | null> {
+        const user = await this.client.users.getUserByName(username);
+        if (!user) return null;
+
+        return {
+            id: Number(user.id),
+            username: user.name
+        };
+    }
+
     async isStreamLive(): Promise<boolean> {
         const stream = await this.client.streams.getStreamByUserName(config.twitch.channel);
         return Boolean(stream);
