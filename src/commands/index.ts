@@ -32,7 +32,7 @@ bot.addAutoCommand('!follow', () => {
 
 bot.addCommand('!coins', async (ctx) => {
     const userCoins = await devwarsService.getUserCoins(ctx.user);
-    if (!userCoins) {
+    if (userCoins === null) {
         return bot.say('Something went wrong getting your coins');
     }
 

@@ -108,7 +108,7 @@ bot.addCommand('!bet <amount> <option>', async (ctx, args) => {
     const option = String(args[1]);
 
     const userCoins = await devwarsService.getUserCoins(ctx.user);
-    if (!userCoins) {
+    if (userCoins === null) {
         return bot.say('Something went wrong getting your coins');
     }
 
