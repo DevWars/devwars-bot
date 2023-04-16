@@ -62,7 +62,7 @@ export function getArgumentProps(commandTemplate: Command['template']) {
 
 export function parseValidNumber(value: ParsedArgument): number | undefined {
     const number = Number(value);
-    if (!Number.isNaN(number)) return;
+    if (Number.isNaN(number)) return;
 
     const isValid = number % 1 === 0 && number >= 0;
     if (!isValid) return;
